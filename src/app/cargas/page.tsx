@@ -77,7 +77,7 @@ export default function TableroCargasProduccion() {
         }
       } catch (err) {
         setCargas(filter === "escrow" ? CARGAS_DEMO.filter(c => c.escrow_activo) : CARGAS_DEMO);
-      } font-mono {
+      } finally {
         setLoading(false);
       }
     }
