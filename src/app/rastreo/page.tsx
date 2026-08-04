@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, Navigation, AlertCircle, Clock, MapPin, Zap, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Lock, ShieldCheck, EyeOff } from "lucide-react";
 import { CyberCard } from "@/components/CyberCard";
 
 export default function TelemetriaGPSSistema() {
@@ -14,38 +14,37 @@ export default function TelemetriaGPSSistema() {
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <div>
-          <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest">TELEMETRÍA EN VIVO</span>
-          <h1 className="text-lg font-bold text-white">RASTREO GPS & TRAYECTO</h1>
+          <span className="text-[10px] font-mono text-emerald-400 uppercase tracking-widest flex items-center gap-1 font-bold">
+            <Lock className="w-3 h-3" /> CANAL PRIVADO RESTRINGIDO
+          </span>
+          <h1 className="text-lg font-bold text-white">RASTREO GPS EN VIVO</h1>
+        </div>
+      </div>
+
+      {/* AVISO DE PRIVACIDAD OPERATIVA */}
+      <div className="bg-[#12151c] p-3 rounded-xl border border-emerald-500/30 flex items-center gap-2.5 text-xs">
+        <EyeOff className="w-5 h-5 text-emerald-400 shrink-0" />
+        <div className="text-[11px] text-slate-300 font-mono">
+          <strong className="text-white block font-bold">ACCESO PRIVADO RESTRINGIDO</strong>
+          Esta telemetría solo es visible para la fletera asignada y el solicitante de la carga. Ningún usuario externo tiene acceso a este mapa ni a las coordenadas del chofer.
         </div>
       </div>
 
       {/* MAPA VECTORIAL DE VÍAS Y RUTAS */}
-      <CyberCard badgeText="MAPA DE RUTA // CARRETERA Y VÍAS LIBRES">
+      <CyberCard badgeText="MAPA DE RUTA PRIVADO // TELEMETRÍA ENCRIPTADA">
         <div className="relative w-full h-56 bg-[#07080a] rounded-xl border border-slate-800 overflow-hidden p-3 font-mono">
-          
-          {/* RED DE CARRETERAS (GRID SIMULADO) */}
           <div className="absolute inset-0 opacity-15 bg-[radial-gradient(#334155_1px,transparent_1px)] [background-size:12px_12px]" />
 
-          {/* VÍA LIBRE Y AUTOPISTA DIBUJADAS */}
           <svg className="absolute inset-0 w-full h-full stroke-slate-700 fill-none stroke-2" viewBox="0 0 300 200">
-            {/* Carretera Libre (Gris Punteado) */}
             <path d="M 30 170 Q 80 140 150 110 T 270 30" strokeDasharray="4 4" className="stroke-slate-600" />
-            {/* Autopista Cuota / Trayecto Real (Verde Táctico) */}
             <path d="M 30 170 L 90 120 L 170 90 L 270 30" className="stroke-emerald-500 stroke-[3]" />
-            
-            {/* MARCADORES DE EVENTOS EN MAPA */}
-            {/* Salida Guadalajara */}
             <circle cx="30" cy="170" r="5" className="fill-slate-100" />
-            {/* Evento Parada Rampa Tepic */}
             <circle cx="90" cy="120" r="6" className="fill-amber-500 animate-ping" />
             <circle cx="90" cy="120" r="4" className="fill-amber-400" />
-            {/* Evento Exceso de Velocidad */}
             <circle cx="170" cy="90" r="5" className="fill-rose-500" />
-            {/* Destino Culiacán */}
             <circle cx="270" cy="30" r="5" className="fill-emerald-400" />
           </svg>
 
-          {/* ETIQUETAS FLOTANTES SOBRE EL MAPA */}
           <div className="absolute top-2 left-2 bg-[#12151c]/90 px-2 py-1 rounded border border-slate-800 text-[9px] text-slate-300">
             ORIGEN: GDL
           </div>
@@ -58,33 +57,31 @@ export default function TelemetriaGPSSistema() {
         </div>
       </CyberCard>
 
-      {/* METRICAS DE TELEMETRIA EN TIEMPO REAL */}
+      {/* METRICAS DE TELEMETRIA */}
       <div className="grid grid-cols-2 gap-2">
         <CyberCard badgeText="VELOCIDAD ACTUAL">
           <div className="text-center">
             <span className="text-2xl font-black font-mono text-white">86 <span className="text-xs font-sans text-slate-400">km/h</span></span>
-            <span className="text-[10px] text-emerald-400 font-mono block mt-1">Estable en Autopista</span>
+            <span className="text-[10px] text-emerald-400 font-mono block mt-1">Autopista Cuota</span>
           </div>
         </CyberCard>
 
-        <CyberCard badgeText="BATERÍA & RADARES">
+        <CyberCard badgeText="CANAL DE TELEMETRÍA">
           <div className="text-center">
-            <span className="text-2xl font-black font-mono text-emerald-400">98%</span>
-            <span className="text-[10px] text-slate-400 font-mono block mt-1">GPS Principal // OK</span>
+            <span className="text-2xl font-black font-mono text-emerald-400">PRIVADO</span>
+            <span className="text-[10px] text-slate-400 font-mono block mt-1">Encriptación AES-256</span>
           </div>
         </CyberCard>
       </div>
 
-      {/* TABLA LATERAL / HISTORIAL DE PARADAS Y VELOCIDAD */}
-      <CyberCard badgeText="REGISTRO DE PARADAS Y TELEMETRÍA DETALLADA">
+      {/* REGISTRO DE EVENTOS */}
+      <CyberCard badgeText="REGISTRO DE PARADAS PRIVADAS">
         <div className="space-y-2 text-xs font-mono">
           <div className="bg-[#0b0c0e] p-2.5 rounded-lg border border-slate-800 space-y-2">
-            
-            {/* REGISTRO 1 */}
             <div className="flex justify-between items-center border-b border-slate-800/80 pb-1.5">
               <div>
                 <span className="text-slate-200 font-bold block">Caseta Tepic (Parada)</span>
-                <span className="text-[10px] text-slate-500">Km 142 • Autopista Libramiento</span>
+                <span className="text-[10px] text-slate-500">Km 142 • Libramiento</span>
               </div>
               <div className="text-right">
                 <span className="text-amber-400 font-bold block">42 MIN</span>
@@ -92,30 +89,16 @@ export default function TelemetriaGPSSistema() {
               </div>
             </div>
 
-            {/* REGISTRO 2 */}
-            <div className="flex justify-between items-center border-b border-slate-800/80 pb-1.5">
-              <div>
-                <span className="text-slate-200 font-bold block">Punto de Exceso Velocidad</span>
-                <span className="text-[10px] text-slate-500">Km 210 • Tramo Mazatlán</span>
-              </div>
-              <div className="text-right">
-                <span className="text-rose-400 font-bold block">104 KM/H</span>
-                <span className="text-[9px] text-slate-500">Alerta 3 MIN</span>
-              </div>
-            </div>
-
-            {/* REGISTRO 3 */}
             <div className="flex justify-between items-center">
               <div>
                 <span className="text-slate-200 font-bold block">Revisión de Báscula SCT</span>
-                <span className="text-[10px] text-slate-500">Km 88 • Rampa Inspección</span>
+                <span className="text-[10px] text-slate-500">Km 88 • Inspección</span>
               </div>
               <div className="text-right">
                 <span className="text-slate-300 font-bold block">15 MIN</span>
                 <span className="text-[9px] text-emerald-400">Peso Aprobado</span>
               </div>
             </div>
-
           </div>
         </div>
       </CyberCard>
