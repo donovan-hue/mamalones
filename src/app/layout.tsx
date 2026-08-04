@@ -1,10 +1,9 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { Navbar } from "@/components/Navbar";
-import { QuickNav } from "@/components/QuickNav";
 
 export const metadata: Metadata = {
-  title: "Kronos Fleet - High Performance",
+  title: "Kronos Fleet - Dark Minimalist",
   description: "Plataforma Logística y Telemetría de Carga",
 };
 
@@ -15,15 +14,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es">
-      <body className="antialiased selection:bg-slate-300 selection:text-black min-h-screen relative bg-[#0a0b0d]">
-        {/* BARRA SUPERIOR Y BÚSQUEDA */}
+      <body className="antialiased min-h-screen bg-[#0b0c0e] text-slate-100 relative">
         <Navbar />
-
-        {/* CONTENIDO DE LA PANTALLA */}
-        <main className="pb-16">{children}</main>
-
-        {/* CONTROLES FLOTANTES ATRÁS/INICIO/ADELANTE */}
-        <QuickNav />
+        <main className="pb-20">{children}</main>
       </body>
     </html>
   );

@@ -1,23 +1,13 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 :root {
-  --bg-carbon: #0a0b0d;
+  --background: #0b0c0e;
+  --foreground: #f8fafc;
 }
 
 body {
-  background-color: var(--bg-carbon);
-  color: #e2e8f0;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  /* PATRON REALISTA DE FIBRA DE CARBONO NEGRA */
-  background-image: 
-    radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 0),
-    linear-gradient(27deg, #12141a 5px, transparent 5px),
-    linear-gradient(207deg, #12141a 5px, transparent 5px),
-    linear-gradient(27deg, #1a1d26 5px, transparent 5px),
-    linear-gradient(207deg, #1a1d26 5px, transparent 5px);
-  background-size: 24px 24px, 20px 20px, 20px 20px, 20px 20px, 20px 20px;
-  background-position: 0 0, 0 0, 10px 10px, 0 10px, 10px 0;
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   min-height: 100vh;
 }
