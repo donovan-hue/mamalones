@@ -8,27 +8,22 @@ interface CyberCardProps {
 
 export function CyberCard({ children, className = "", badgeText }: CyberCardProps) {
   return (
-    <div className={`relative rounded-2xl p-0.5 bg-gradient-to-b from-slate-600 via-slate-800 to-slate-950 shadow-2xl ${className}`}>
-      {/* CUERPO INTERNO CON FIBRA Y BORDE METALICO */}
-      <div 
-        className="rounded-[14px] p-4 bg-[#11141a] relative overflow-hidden border border-slate-700/60"
-        style={{
-          backgroundImage: `
-            linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 50%, rgba(0, 0, 0, 0.4) 100%),
-            radial-gradient(circle at 50% 0%, rgba(148, 163, 184, 0.1), transparent 75%)
-          `
-        }}
-      >
+    <div className={`relative rounded-2xl p-[1.5px] bg-gradient-to-b from-slate-400 via-slate-600 to-slate-900 shadow-2xl ${className}`}>
+      {/* CUERPO METALICO CON TEXTURA */}
+      <div className="rounded-[14px] p-5 bg-[#0f1117] relative overflow-hidden border border-slate-700/80 shadow-inner">
+        {/* BRILLO REFLEJO METALICO */}
+        <div className="absolute -top-12 -left-12 w-40 h-40 bg-slate-300/10 rounded-full blur-2xl pointer-events-none" />
+
         {children}
 
-        {/* INSIGNIA INFERIOR ESTILO HIGH PERFORMANCE */}
+        {/* INSIGNIA BARRAS Y FLECHAS INFERIORES ESTILO CARBON FIBER */}
         {badgeText && (
-          <div className="mt-3 pt-2 border-t border-slate-800/80 flex items-center justify-between text-[10px] font-mono text-slate-400 uppercase tracking-widest">
-            <span className="text-slate-500 font-bold">{"<<<"}</span>
-            <span className="bg-slate-900 border border-slate-700/80 px-2.5 py-0.5 rounded-md text-slate-300 font-extrabold italic">
-              {badgeText} // KRONOS
+          <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-[10px] font-mono text-slate-400">
+            <span className="text-slate-500 font-extrabold tracking-tighter">{"<<<"}</span>
+            <span className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border border-slate-600/60 px-3 py-1 rounded-md text-slate-200 font-black italic tracking-wider">
+              {badgeText} // EST. 2026
             </span>
-            <span className="text-slate-500 font-bold">{">>>"}</span>
+            <span className="text-slate-500 font-extrabold tracking-tighter">{">>>"}</span>
           </div>
         )}
       </div>
