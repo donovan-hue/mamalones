@@ -8,13 +8,13 @@ interface CyberCardProps {
 
 export function CyberCard({ children, className = "", badgeText }: CyberCardProps) {
   return (
-    <div className={`rounded-2xl bg-[#12151c] border border-slate-800 p-5 shadow-2xl w-full ${className}`}>
+    <div className={`vercel-card rounded-lg p-4 w-full ${className}`}>
       {badgeText && (
-        <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-800">
-          <span className="text-[10px] font-mono tracking-widest text-slate-400 uppercase font-bold">
+        <div className="flex items-center justify-between mb-3 pb-2 border-b border-[#222222]">
+          <span className="text-[11px] font-mono tracking-tight text-[#888888] uppercase">
             {badgeText}
           </span>
-          <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
+          <span className="w-1.5 h-1.5 rounded-full bg-[#555555]" />
         </div>
       )}
       <div className="space-y-3">{children}</div>
