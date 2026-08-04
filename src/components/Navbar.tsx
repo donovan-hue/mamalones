@@ -5,13 +5,12 @@ import Link from "next/link";
 import { 
   Menu, X, Search, Truck, MapPin, Scale, QrCode, 
   ShieldCheck, AlertTriangle, FileText, Utensils, 
-  Plus, LogIn, UserPlus, ChevronRight, Settings 
+  Plus, LogIn, UserPlus, ChevronRight 
 } from "lucide-react";
 
 const SECCIONES = [
   { nombre: "Mercado de Cargas", ruta: "/cargas", icono: Truck },
   { nombre: "Publicar Carga", ruta: "/publicar", icono: Plus },
-  { nombre: "Configuración & Edición (CRUD)", ruta: "/configuracion", icono: Settings },
   { nombre: "Rastreo GPS Telemetría", ruta: "/rastreo", icono: MapPin },
   { nombre: "Báscula & Diésel", ruta: "/bascula", icono: Scale },
   { nombre: "TAG & Casetas QR", ruta: "/caseta", icono: QrCode },
@@ -33,7 +32,9 @@ export function Navbar() {
 
   return (
     <>
+      {/* HEADER SUPERIOR CON BÚSQUEDA Y BOTÓN DE MENÚ */}
       <header className="sticky top-0 z-50 bg-[#0a0b0d]/90 backdrop-blur-md border-b border-slate-800 p-3 max-w-md mx-auto flex items-center justify-between gap-2 font-sans">
+        {/* LOGO INICIO */}
         <Link href="/" className="flex items-center gap-1.5 font-black text-xs text-slate-100 italic shrink-0">
           <div className="p-1.5 bg-slate-800 border border-slate-600 rounded-lg">
             <Truck className="w-4 h-4 text-slate-200" />
@@ -41,6 +42,7 @@ export function Navbar() {
           <span>KRONOS</span>
         </Link>
 
+        {/* BARRA DE BÚSQUEDA RÁPIDA */}
         <div className="relative flex-1">
           <Search className="absolute left-2.5 top-2.5 w-3.5 h-3.5 text-slate-500" />
           <input
@@ -53,6 +55,7 @@ export function Navbar() {
           />
         </div>
 
+        {/* BOTÓN MENÚ DESPLEGABLE */}
         <button
           onClick={() => setOpenMenu(!openMenu)}
           className="p-2 bg-slate-900 border border-slate-700/80 rounded-xl text-slate-200 hover:text-white transition-all active:scale-95 shrink-0 flex items-center gap-1"
@@ -61,6 +64,7 @@ export function Navbar() {
         </button>
       </header>
 
+      {/* PANEL MODAL DESPLEGABLE CON TODAS LAS SECCIONES */}
       {openMenu && (
         <div className="fixed inset-0 z-40 bg-black/80 backdrop-blur-md max-w-md mx-auto flex flex-col justify-between p-4 pt-16 font-sans">
           <div className="space-y-3 overflow-y-auto max-h-[80vh] pr-1">
