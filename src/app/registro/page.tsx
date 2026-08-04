@@ -1,192 +1,133 @@
 "use client";
 
 import { useState } from "react";
-import { UserCheck, Truck, ShieldCheck, FileText, Camera, CheckCircle2 } from "lucide-react";
-import { supabase } from "@/lib/supabase";
+import Link from "next/link";
+import { ArrowLeft, User, Shield, Truck, FileText, CheckCircle } from "lucide-react";
+import { CyberCard } from "@/components/CyberCard";
+import { createClient } from "@supabase/supabase-js";
 
-export default function RegistroValidacionPage() {
-  const [fullName, setFullName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [plates, setPlates] = useState("");
-  const [vehicleType, setVehicleType] = useState("Torton");
-  const [vin, setVin] = useState("");
-  const [policy, setPolicy] = useState("");
-  const [emptyWeight, setEmptyWeight] = useState("");
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+export default function RegistroChoferProduccion() {
+  const [nombre, setNombre] = useState("");
+  const [licencia, setLicencia] = useState("");
+  const [placas, setPlacas] = useState("");
+  const [seguro, setSeguro] = useState("");
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    // Registro de prueba en tabla de perfiles y vehículos
-    const { error: profileError } = await supabase.from("profiles").insert([
-      {
-        id: "00000000-0000-0000-0000-000000000000", // UUID de sesión
-        full_name: fullName,
-        phone: phone,
-        role: "driver",
-      },
-    ]);
+    try {
+      const { error } = await supabase.from("expedientes").insert([
+        {
+          nombre_operador: nombre,
+          licencia_federal: licencia,
+          placas_unidad: placas,
+          poliza_seguro: seguro,
+          estatus_verificacion: "validado",
+          created_at: new Date().toISOString(),
+        },
+      ]);
 
-    const { error: vehicleError } = await supabase.from("vehicles").insert([
-      {
-        carrier_id: "00000000-0000-0000-0000-000000000000",
-        plates: plates,
-        vehicle_type: vehicleType,
-        vin: vin,
-        insurance_policy: policy,
-        empty_weight_kg: parseFloat(emptyWeight) || 12000,
-      },
-    ]);
-
-    setLoading(false);
-    setSuccess(true);
+      if (error) throw error;
+      alert("¡Expediente de unidad registrado y verificado correctamente!");
+      window.location.href = "/cargas";
+    } catch (err: any) {
+      alert("Error en registro: " + (err.message || "Verifica tu conexión"));
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-4 max-w-md mx-auto space-y-4 pb-20">
-      {/* HEADER */}
-      <div className="bg-slate-900 p-4 rounded-2xl border border-slate-800 flex items-center justify-between shadow-xl">
-        <div className="flex items-center gap-3">
-          <UserCheck className="w-7 h-7 text-amber-500" />
-          <div>
-            <h1 className="font-bold text-base text-white">Alta de Chofer y Unidad</h1>
-            <p className="text-xs text-slate-400">Expediente Digital Verificado</p>
-          </div>
+    <div className="min-h-screen text-slate-100 p-4 max-w-md mx-auto space-y-4 pb-20 font-sans">
+      <div className="flex items-center gap-3 border-b border-slate-800 pb-3">
+        <Link href="/" className="p-2 bg-slate-900 border border-slate-700/80 rounded-xl text-slate-300 hover:text-white transition-colors">
+          <ArrowLeft className="w-5 h-5" />
+        </Link>
+        <div>
+          <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest">EXPEDIENTE</span>
+          <h1 className="text-lg font-black tracking-wider text-slate-100 italic">ALTA DE UNIDAD</h1>
         </div>
       </div>
 
-      {success ? (
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 text-center space-y-3">
-          <CheckCircle2 className="w-14 h-14 text-emerald-400 mx-auto" />
-          <h2 className="text-lg font-bold text-white">¡Expediente Aprobado!</h2>
-          <p className="text-xs text-slate-400">
-            Chofer y unidad <strong className="text-amber-400">{plates}</strong> validados correctamente para operar en la plataforma.
-          </p>
-          <button
-            onClick={() => setSuccess(false)}
-            className="text-xs text-amber-400 underline pt-2 inline-block"
-          >
-            Registrar otra unidad
-          </button>
-        </div>
-      ) : (
-        <form onSubmit={handleRegister} className="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-4">
-          {/* DATOS DEL OPERADOR */}
-          <div className="space-y-3">
-            <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-              <UserCheck className="w-4 h-4 text-amber-500" /> Datos del Chofer
-            </h2>
-
-            <div>
-              <label className="block text-xs font-medium mb-1 text-slate-300">Nombre Completo</label>
+      <CyberCard badgeText="FICHA TÉCNICA">
+        <form onSubmit={handleRegister} className="space-y-3">
+          <div className="space-y-1">
+            <label className="text-[10px] font-mono font-bold text-slate-400 uppercase">Nombre Completo Operador</label>
+            <div className="relative">
+              <User className="absolute left-3 top-3 w-4 h-4 text-slate-500" />
               <input
                 type="text"
                 required
-                placeholder="Nombre completo"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white focus:border-amber-500 focus:outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium mb-1 text-slate-300">Teléfono Celular</label>
-              <input
-                type="tel"
-                required
-                placeholder="10 dígitos"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white focus:border-amber-500 focus:outline-none"
+                placeholder="Nombre del Chofer"
+                value={nombre}
+                onChange={(e) => setNombre(e.target.value)}
+                className="w-full bg-[#0a0b0d] border border-slate-800 focus:border-slate-400 rounded-xl p-2.5 pl-9 text-xs text-slate-100 outline-none font-mono"
               />
             </div>
           </div>
 
-          <hr className="border-slate-800" />
+          <div className="space-y-1">
+            <label className="text-[10px] font-mono font-bold text-slate-400 uppercase">Licencia Federal Folio</label>
+            <div className="relative">
+              <FileText className="absolute left-3 top-3 w-4 h-4 text-slate-500" />
+              <input
+                type="text"
+                required
+                placeholder="FED-8839201"
+                value={licencia}
+                onChange={(e) => setLicencia(e.target.value)}
+                className="w-full bg-[#0a0b0d] border border-slate-800 focus:border-slate-400 rounded-xl p-2.5 pl-9 text-xs text-slate-100 outline-none font-mono"
+              />
+            </div>
+          </div>
 
-          {/* DATOS DE LA UNIDAD */}
-          <div className="space-y-3">
-            <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-              <Truck className="w-4 h-4 text-amber-500" /> Datos del Vehículo
-            </h2>
-
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="block text-xs font-medium mb-1 text-slate-300">Placas</label>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-1">
+              <label className="text-[10px] font-mono font-bold text-slate-400 uppercase">Placas Unidad</label>
+              <div className="relative">
+                <Truck className="absolute left-3 top-3 w-4 h-4 text-slate-500" />
                 <input
                   type="text"
                   required
                   placeholder="88-AA-1B"
-                  value={plates}
-                  onChange={(e) => setPlates(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white focus:border-amber-500 focus:outline-none font-mono"
+                  value={placas}
+                  onChange={(e) => setPlacas(e.target.value)}
+                  className="w-full bg-[#0a0b0d] border border-slate-800 focus:border-slate-400 rounded-xl p-2.5 pl-9 text-xs text-slate-100 outline-none font-mono uppercase"
                 />
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium mb-1 text-slate-300">Tipo de Unidad</label>
-                <select
-                  value={vehicleType}
-                  onChange={(e) => setVehicleType(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white focus:border-amber-500 focus:outline-none"
-                >
-                  <option value="Torton">Torton (3 Ejes)</option>
-                  <option value="Trailer 53ft">Tráiler 53ft</option>
-                  <option value="Rabon">Rabón</option>
-                  <option value="Jaula">Jaula Granelera</option>
-                </select>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="block text-xs font-medium mb-1 text-slate-300">Número VIN</label>
+            <div className="space-y-1">
+              <label className="text-[10px] font-mono font-bold text-slate-400 uppercase">Póliza Seguro</label>
+              <div className="relative">
+                <Shield className="absolute left-3 top-3 w-4 h-4 text-slate-500" />
                 <input
                   type="text"
-                  placeholder="17 dígitos"
-                  value={vin}
-                  onChange={(e) => setVin(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white focus:border-amber-500 focus:outline-none font-mono"
+                  required
+                  placeholder="POL-991823"
+                  value={seguro}
+                  onChange={(e) => setSeguro(e.target.value)}
+                  className="w-full bg-[#0a0b0d] border border-slate-800 focus:border-slate-400 rounded-xl p-2.5 pl-9 text-xs text-slate-100 outline-none font-mono uppercase"
                 />
               </div>
-
-              <div>
-                <label className="block text-xs font-medium mb-1 text-slate-300">Peso Vacío / Tara (kg)</label>
-                <input
-                  type="number"
-                  placeholder="Ej. 11500"
-                  value={emptyWeight}
-                  onChange={(e) => setEmptyWeight(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white focus:border-amber-500 focus:outline-none"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium mb-1 text-slate-300">Póliza de Seguro Vigente</label>
-              <input
-                type="text"
-                required
-                placeholder="Folio o Póliza de Seguro"
-                value={policy}
-                onChange={(e) => setPolicy(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white focus:border-amber-500 focus:outline-none"
-              />
             </div>
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-slate-950 font-bold py-3.5 rounded-xl text-xs transition-colors flex items-center justify-center gap-2 mt-4"
+            className="w-full bg-gradient-to-r from-slate-200 via-slate-300 to-slate-400 text-slate-950 font-black py-3 rounded-xl text-xs tracking-wider uppercase transition-all shadow-xl border border-white/40 disabled:opacity-50 mt-2"
           >
-            <ShieldCheck className="w-4 h-4" />
-            {loading ? "Validando Expediente..." : "Guardar Chofer y Unidad"}
+            {loading ? "Validando Ficha..." : "Guardar & Activar Expediente"}
           </button>
         </form>
-      )}
+      </CyberCard>
     </div>
   );
 }
