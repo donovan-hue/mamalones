@@ -1,145 +1,73 @@
 "use client";
 
 import { useState } from "react";
-import { QrCode, Camera, CheckCircle2, ShieldCheck, MapPin } from "lucide-react";
-import { supabase } from "@/lib/supabase";
+import Link from "next/link";
+import { ArrowLeft, ShieldCheck, CheckCircle2, QrCode, Lock, FileCheck } from "lucide-react";
+import { CyberCard } from "@/components/CyberCard";
 
-export default function EscaneoEntrega() {
-  const [freightId, setFreightId] = useState("");
-  const [scannedQr, setScannedQr] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
-
-  const handleConfirmDelivery = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const lat = position.coords.latitude;
-        const lng = position.coords.longitude;
-
-        const { data: freight, error: freightError } = await supabase
-          .from("freights")
-          .select("id, delivery_qr_code")
-          .eq("id", freightId)
-          .single();
-
-        if (freightError || !freight) {
-          alert("Error: Flete no encontrado");
-          setLoading(false);
-          return;
-        }
-
-        if (freight.delivery_qr_code !== scannedQr) {
-          alert("🚨 Código QR Incorrecto. El QR no corresponde a este pedido.");
-          setLoading(false);
-          return;
-        }
-
-        await supabase.from("freight_evidences").insert([
-          {
-            freight_id: freightId,
-            uploader_id: "00000000-0000-0000-0000-000000000000",
-            evidence_type: "delivery_qr_scan",
-            image_url: "https://ejemplo.com/evidencia_qr.jpg",
-            captured_lat: lat,
-            captured_lng: lng,
-          },
-        ]);
-
-        await supabase
-          .from("freights")
-          .update({ status: "completed" })
-          .eq("id", freightId);
-
-        await supabase
-          .from("escrow_payments")
-          .update({
-            payment_status: "released",
-            released_at: new Date().toISOString(),
-          })
-          .eq("freight_id", freightId);
-
-        setLoading(false);
-        setSuccess(true);
-      },
-      (error) => {
-        alert("Error al obtener GPS obligatorio: " + error.message);
-        setLoading(false);
-      }
-    );
-  };
+export default function EntregaPage() {
+  const [liberado, setLiberado] = useState(false);
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 p-6 flex items-center justify-center">
-      <div className="max-w-md w-full bg-slate-800 rounded-xl p-6 border border-slate-700 shadow-2xl">
-        <div className="flex items-center gap-3 mb-6">
-          <ShieldCheck className="w-8 h-8 text-emerald-400" />
-          <h1 className="text-xl font-bold">Confirmación de Entrega</h1>
+    <div className="min-h-screen text-slate-100 p-4 max-w-md mx-auto space-y-4 pb-20 font-sans">
+      <div className="flex items-center gap-3 border-b border-slate-800 pb-3">
+        <Link href="/cargas" className="p-2 bg-slate-900 border border-slate-700/80 rounded-xl text-slate-300 hover:text-white transition-colors">
+          <ArrowLeft className="w-5 h-5" />
+        </Link>
+        <div>
+          <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest">CIERRE DE VIAJE</span>
+          <h1 className="text-lg font-black tracking-wider text-slate-100 italic">ENTREGA & ESCROW</h1>
         </div>
-
-        {success ? (
-          <div className="text-center py-8 space-y-4">
-            <CheckCircle2 className="w-16 h-16 text-emerald-400 mx-auto" />
-            <h2 className="text-2xl font-bold text-white">¡Entrega Confirmada!</h2>
-            <p className="text-sm text-slate-400">
-              El pago ha sido liberado de la Bóveda Escrow hacia la cuenta de la fletera.
-            </p>
-            <a
-              href="/cargas"
-              className="inline-block bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-6 py-2.5 rounded-lg text-sm mt-4"
-            >
-              Volver al Tablero
-            </a>
-          </div>
-        ) : (
-          <form onSubmit={handleConfirmDelivery} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-1 text-slate-300">ID del Flete</label>
-              <input
-                type="text"
-                required
-                placeholder="Ingresa el ID del flete"
-                value={freightId}
-                onChange={(e) => setFreightId(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 rounded-lg py-2.5 px-4 text-white focus:outline-none focus:border-amber-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1 text-slate-300">
-                Código QR de Recepción (Mostrado por el cliente/bodega)
-              </label>
-              <div className="relative">
-                <QrCode className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
-                <input
-                  type="text"
-                  required
-                  placeholder="Escanea o escribe el código QR"
-                  value={scannedQr}
-                  onChange={(e) => setScannedQr(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg py-2.5 pl-10 pr-4 text-white focus:outline-none focus:border-amber-500"
-                />
-              </div>
-            </div>
-
-            <div className="bg-slate-900 border border-slate-700 rounded-lg p-3 flex items-center gap-3 text-xs text-slate-400">
-              <MapPin className="w-5 h-5 text-amber-500 shrink-0" />
-              <span>Se capturará la coordenada GPS exacta en tiempo real al confirmar.</span>
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-slate-950 font-bold py-3 rounded-lg transition-colors flex items-center justify-center gap-2 mt-4"
-            >
-              <Camera className="w-5 h-5" />
-              {loading ? "Validando GPS y QR..." : "Confirmar Entrega y Liberar Pago"}
-            </button>
-          </form>
-        )}
       </div>
+
+      <CyberCard badgeText="CUSTODIA FINANCIERA">
+        <div className="space-y-4 text-center">
+          <div className="p-3 bg-slate-900 border border-slate-700 rounded-2xl inline-block shadow-xl">
+            {liberado ? (
+              <CheckCircle2 className="w-10 h-10 text-emerald-400" />
+            ) : (
+              <Lock className="w-10 h-10 text-slate-200" />
+            )}
+          </div>
+
+          <div>
+            <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest block">
+              ESTATUS DE BÓVEDA
+            </span>
+            <span className="text-base font-black font-mono text-slate-100">
+              {liberado ? "FONDOS LIBERADOS A CLABE" : "$34,500.00 MXN EN CUSTODIA"}
+            </span>
+          </div>
+
+          <div className="bg-[#0a0b0d] p-3 rounded-xl border border-slate-800 text-xs font-mono space-y-1 text-left">
+            <div className="flex justify-between text-slate-400">
+              <span>Folio Flete:</span>
+              <span className="text-slate-200">FLT-9901</span>
+            </div>
+            <div className="flex justify-between text-slate-400">
+              <span>Bodega Receptora:</span>
+              <span className="text-slate-200">Culiacán Central</span>
+            </div>
+            <div className="flex justify-between text-slate-400">
+              <span>Acuse de Recibo:</span>
+              <span className="text-emerald-400 font-bold">FIRMA DIGITAL OK</span>
+            </div>
+          </div>
+
+          {!liberado ? (
+            <button
+              onClick={() => setLiberado(true)}
+              className="w-full bg-gradient-to-r from-slate-200 via-slate-300 to-slate-400 hover:from-slate-100 hover:to-slate-300 text-slate-950 font-black py-3 rounded-xl text-xs tracking-wider uppercase transition-all shadow-xl border border-white/40 active:scale-98"
+            >
+              Liberar Pago a Transportista
+            </button>
+          ) : (
+            <div className="p-2.5 bg-emerald-950/40 border border-emerald-500/40 rounded-xl text-emerald-400 text-xs font-mono font-bold">
+              Depósito transferido exitosamente a cuenta CLABE.
+            </div>
+          )}
+        </div>
+      </CyberCard>
     </div>
   );
 }
