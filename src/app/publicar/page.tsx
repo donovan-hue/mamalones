@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import { Truck, MapPin, Weight, DollarSign, Package } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 export default function PublicarFlete() {
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     origin: "",
     destination: "",
@@ -12,10 +14,28 @@ export default function PublicarFlete() {
     price: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Flete publicado:", formData);
-    alert("¡Flete publicado correctamente!");
+    setLoading(true);
+
+    const { error } = await supabase.from("freights").insert([
+      {
+        origin: formData.origin,
+        destination: formData.destination,
+        weight: formData.weight,
+        cargo_type: formData.cargoType,
+        price: Number(formData.price),
+      },
+    ]);
+
+    setLoading(false);
+
+    if (error) {
+      alert("Error al publicar la carga: " + error.message);
+    } else {
+      alert("¡Flete publicado con éxito en Supabase!");
+      window.location.href = "/cargas";
+    }
   };
 
   return (
@@ -101,9 +121,10 @@ export default function PublicarFlete() {
 
           <button
             type="submit"
-            className="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-3 rounded-lg transition-colors mt-6"
+            disabled={loading}
+            className="w-full bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-slate-950 font-bold py-3 rounded-lg transition-colors mt-6"
           >
-            Publicar Carga
+            {loading ? "Guardando..." : "Publicar Carga"}
           </button>
         </form>
       </div>
