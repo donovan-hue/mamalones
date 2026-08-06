@@ -4,11 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, DollarSign, MapPin, Package, ShieldCheck, CheckCircle2 } from "lucide-react";
 import { CyberCard } from "@/components/CyberCard";
-import { createClient } from "@supabase/supabase-js";
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+import { supabase } from "@/lib/supabase";
 
 export default function PublicarCargaProduccion() {
   const [origen, setOrigen] = useState("");
@@ -26,6 +22,11 @@ export default function PublicarCargaProduccion() {
     setExito(false);
 
     try {
+     if (!supabase) {
+  alert("Falta configurar las variables de entorno de Supabase.");
+  setLoading(false);
+  return;
+}
       const { error } = await supabase.from("cargas").insert([
         {
           origen,
