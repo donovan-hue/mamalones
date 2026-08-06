@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, Utensils, Check } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { CyberCard } from "@/components/CyberCard";
 
 export default function SushiPage() {

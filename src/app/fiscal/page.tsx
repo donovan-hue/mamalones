@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, FileText, Download, ShieldCheck, CheckCircle2, QrCode } from "lucide-react";
+import { ArrowLeft, Download, CheckCircle2, QrCode } from "lucide-react";
 import { CyberCard } from "@/components/CyberCard";
 
 export default function CartaPorteCompleta() {

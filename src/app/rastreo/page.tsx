@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, Lock, ShieldCheck, EyeOff } from "lucide-react";
+import { ArrowLeft, Lock, EyeOff } from "lucide-react";
 import { CyberCard } from "@/components/CyberCard";
 
 export default function TelemetriaGPSSistema() {

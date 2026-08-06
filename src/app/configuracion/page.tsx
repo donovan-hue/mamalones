@@ -3,8 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { 
-  ArrowLeft, Settings, UserCheck, Route, FileUp, 
-  Trash2, Edit3, Save, Plus, AlertCircle, CheckCircle2, Upload
+  ArrowLeft, UserCheck, 
+  Trash2, Edit3, Save, CheckCircle2, Upload
 } from "lucide-react";
 import { CyberCard } from "@/components/CyberCard";
 

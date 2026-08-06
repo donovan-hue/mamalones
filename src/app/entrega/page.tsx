@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, Lock, ShieldCheck, Truck, UserCheck, QrCode, FileText, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Lock, ShieldCheck, UserCheck, QrCode, CheckCircle2 } from "lucide-react";
 import { CyberCard } from "@/components/CyberCard";
 
 export default function FichaIdentidadUnidad() {

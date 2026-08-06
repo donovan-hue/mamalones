@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Truck, MapPin, ShieldCheck, ChevronRight, Plus, ArrowLeft, Loader2, Lock } from "lucide-react";
+import { MapPin, ShieldCheck, ChevronRight, Plus, ArrowLeft, Loader2, Lock } from "lucide-react";
 import { CyberCard } from "@/components/CyberCard";
 import { createClient } from "@supabase/supabase-js";
 
@@ -77,7 +77,7 @@ export default function TableroCargasProduccion() {
         } else {
           setCargas(data);
         }
-      } catch (err) {
+      } catch {
         setCargas(filter === "escrow" ? CARGAS_DEMO.filter(c => c.escrow_activo) : CARGAS_DEMO);
       } finally {
         setLoading(false);

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, AlertTriangle, WifiOff, Camera, Clock, Check } from "lucide-react";
+import { ArrowLeft, WifiOff } from "lucide-react";
 import { CyberCard } from "@/components/CyberCard";
 
 export default function IncidentesPage() {

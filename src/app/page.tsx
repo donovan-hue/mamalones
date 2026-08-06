@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, ShieldCheck, Lock, Search, Cpu } from "lucide-react";
+import { ArrowRight, Cpu } from "lucide-react";
 import { CyberCard } from "@/components/CyberCard";
 
 export default function WelcomePage() {

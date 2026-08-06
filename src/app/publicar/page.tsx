@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Truck, DollarSign, MapPin, Package, ShieldCheck, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, DollarSign, MapPin, Package, ShieldCheck, CheckCircle2 } from "lucide-react";
 import { CyberCard } from "@/components/CyberCard";
 import { createClient } from "@supabase/supabase-js";
 
@@ -45,8 +45,9 @@ export default function PublicarCargaProduccion() {
       setDestino("");
       setMonto("");
       setProducto("");
-    } catch (err: any) {
-      alert("Error al publicar la carga: " + (err.message || "Verifica tu conexión"));
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Verifica tu conexión";
+      alert("Error al publicar la carga: " + errorMessage);
     } finally {
       setLoading(false);
     }

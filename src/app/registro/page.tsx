@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, User, Shield, Truck, FileText, CheckCircle } from "lucide-react";
+import { ArrowLeft, User, Shield, FileText, Truck } from "lucide-react";
 import { CyberCard } from "@/components/CyberCard";
 import { createClient } from "@supabase/supabase-js";
 
@@ -11,6 +12,7 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export default function RegistroChoferProduccion() {
+  const router = useRouter();
   const [nombre, setNombre] = useState("");
   const [licencia, setLicencia] = useState("");
   const [placas, setPlacas] = useState("");
@@ -35,9 +37,10 @@ export default function RegistroChoferProduccion() {
 
       if (error) throw error;
       alert("¡Expediente de unidad registrado y verificado correctamente!");
-      window.location.href = "/cargas";
-    } catch (err: any) {
-      alert("Error en registro: " + (err.message || "Verifica tu conexión"));
+      router.push("/cargas");
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Verifica tu conexión";
+      alert("Error en registro: " + errorMessage);
     } finally {
       setLoading(false);
     }

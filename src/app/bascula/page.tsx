@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Scale, Fuel, ShieldAlert, Calculator } from "lucide-react";
+import { ArrowLeft, Fuel } from "lucide-react";
 import { CyberCard } from "@/components/CyberCard";
 
 export default function BasculaPage() {
