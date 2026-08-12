@@ -1,114 +1,92 @@
-"use client";
+'use client'
 
-import { useState } from "react";
-import Link from "next/link";
-import { ArrowLeft, Fuel } from "lucide-react";
-import { CyberCard } from "@/components/CyberCard";
+import { useState } from 'react'
+import { createClient } from '@/lib/supabase'
 
 export default function BasculaPage() {
-  const [pesoBruto, setPesoBruto] = useState<number | "">("");
-  const [pesoTara, setPesoTara] = useState<number | "">("");
-  const [litrosDiesel, setLitrosDiesel] = useState<number | "">("");
+  const [cargaId, setCargaId] = useState('')
+  const [pesoEntrada, setPesoEntrada] = useState('')
+  const [pesoSalida, setPesoSalida] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [mensaje, setMensaje] = useState<string | null>(null)
+  const supabase = createClient()
 
-  const pesoNeto = typeof pesoBruto === "number" && typeof pesoTara === "number" ? pesoBruto - pesoTara : 0;
-  const mermaKg = typeof litrosDiesel === "number" ? (litrosDiesel * 0.835).toFixed(1) : "0.0";
+  const handleGuardarPesaje = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setMensaje(null)
 
-  // Función para registrar la información de la báscula
-  const registrarEntrada = async () => {
-    if (pesoBruto === "" || pesoTara === "") {
-      alert("Por favor ingresa los pesos requeridos.");
-      return;
+    const pEntrada = parseFloat(pesoEntrada) || 0
+    const pSalida = parseFloat(pesoSalida) || 0
+    const pesoNeto = Math.abs(pSalida - pEntrada)
+
+    const { error } = await supabase.from('bascula_registros').insert([
+      {
+        carga_id: cargaId,
+        peso_entrada: pEntrada,
+        peso_salida: pSalida,
+        peso_neto: pesoNeto,
+      },
+    ])
+
+    if (error) {
+      setMensaje(`Error: ${error.message}`)
+    } else {
+      setMensaje(`Ticket guardado con éxito. Peso neto: ${pesoNeto} kg`)
+      setCargaId('')
+      setPesoEntrada('')
+      setPesoSalida('')
     }
-    console.log("Datos a enviar:", { pesoBruto, pesoTara, pesoNeto, litrosDiesel, mermaKg });
-    alert("¡Registro de báscula guardado!");
-    // En el Bloque 2 conectaremos esto con Supabase
-  };
+    setLoading(false)
+  }
 
   return (
-    <div className="min-h-screen text-slate-100 p-4 max-w-md mx-auto space-y-4 pb-20 font-sans">
-      <div className="flex items-center gap-3 border-b border-slate-800 pb-3">
-        <Link href="/cargas" className="p-2 bg-slate-900 border border-slate-700/80 rounded-xl text-slate-300 hover:text-white transition-colors">
-          <ArrowLeft className="w-5 h-5" />
-        </Link>
+    <div className="min-h-screen bg-black text-white p-6 max-w-2xl mx-auto">
+      <h1 className="text-2xl font-bold mb-6">Registro de Báscula</h1>
+      {mensaje && <p className="mb-4 text-sm font-medium text-blue-400">{mensaje}</p>}
+      <form onSubmit={handleGuardarPesaje} className="space-y-4 bg-zinc-900 p-6 rounded-xl border border-zinc-800">
         <div>
-          <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest">REGISTRO TÉCNICO</span>
-          <h1 className="text-lg font-black tracking-wider text-slate-100 italic">BÁSCULA & DIÉSEL</h1>
+          <label className="block text-sm font-medium mb-1">ID del Viaje / Carga</label>
+          <input
+            type="text"
+            required
+            placeholder="UUID del viaje"
+            className="w-full p-2.5 rounded bg-zinc-800 border border-zinc-700 text-white"
+            value={cargaId}
+            onChange={(e) => setCargaId(e.target.value)}
+          />
         </div>
-      </div>
-
-      <CyberCard badgeText="PESAJE MÓVIL">
-        <div className="space-y-3">
-          <div className="grid grid-cols-2 gap-2">
-            <div className="space-y-1">
-              <label className="text-[10px] font-mono font-bold text-slate-400 uppercase">Peso Bruto (KG)</label>
-              <input
-                type="number"
-                placeholder="38000"
-                value={pesoBruto}
-                onChange={(e) => setPesoBruto(e.target.value === "" ? "" : Number(e.target.value))}
-                className="w-full bg-[#0a0b0d] border border-slate-800 rounded-xl p-2.5 text-xs font-mono text-slate-100 outline-none"
-              />
-            </div>
-            <div className="space-y-1">
-              <label className="text-[10px] font-mono font-bold text-slate-400 uppercase">Peso Tara (KG)</label>
-              <input
-                type="number"
-                placeholder="10000"
-                value={pesoTara}
-                onChange={(e) => setPesoTara(e.target.value === "" ? "" : Number(e.target.value))}
-                className="w-full bg-[#0a0b0d] border border-slate-800 rounded-xl p-2.5 text-xs font-mono text-slate-100 outline-none"
-              />
-            </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Peso Entrada (kg)</label>
+            <input
+              type="number"
+              required
+              placeholder="0.00"
+              className="w-full p-2.5 rounded bg-zinc-800 border border-zinc-700 text-white"
+              value={pesoEntrada}
+              onChange={(e) => setPesoEntrada(e.target.value)}
+            />
           </div>
-
-          <div className="bg-[#0a0b0d] p-3 rounded-xl border border-slate-800 text-center">
-            <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest">PESO NETO CARGADO</span>
-            <div className="text-2xl font-black font-mono text-slate-100 mt-0.5">
-              {pesoNeto.toLocaleString()} <span className="text-xs text-slate-400 font-normal">KG</span>
-            </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Peso Salida (kg)</label>
+            <input
+              type="number"
+              placeholder="0.00"
+              className="w-full p-2.5 rounded bg-zinc-800 border border-zinc-700 text-white"
+              value={pesoSalida}
+              onChange={(e) => setPesoSalida(e.target.value)}
+            />
           </div>
         </div>
-      </CyberCard>
-
-      <CyberCard badgeText="CALCULADORA MERMA DIÉSEL">
-        <div className="space-y-3">
-          <div className="space-y-1">
-            <label className="text-[10px] font-mono font-bold text-slate-400 uppercase">Litros Recargados en Ruta</label>
-            <div className="relative">
-              <Fuel className="absolute left-3 top-3 w-4 h-4 text-slate-500" />
-              <input
-                type="number"
-                placeholder="400"
-                value={litrosDiesel}
-                onChange={(e) => setLitrosDiesel(e.target.value === "" ? "" : Number(e.target.value))}
-                className="w-full bg-[#0a0b0d] border border-slate-800 rounded-xl p-2.5 pl-9 text-xs font-mono text-slate-100 outline-none"
-              />
-            </div>
-          </div>
-
-          <div className="bg-[#0a0b0d] p-3 rounded-xl border border-slate-800/80 flex items-center justify-between text-xs font-mono">
-            <span className="text-slate-400">Descuento Merma (0.835 kg/L):</span>
-            <span className="text-slate-200 font-black">{mermaKg} KG</span>
-          </div>
-        </div>
-      </CyberCard>
-              <div className="bg-[#0a0b0d] p-3 rounded-xl border border-slate-800/80 flex items-center justify-between">
-            <span className="text-slate-400">Descuento Merma (0.835 kg/L):</span>
-            <span className="text-slate-200 font-black">{mermaKg} KG</span>
-          </div>
-        </div>
-      </CyberCard>
-
-      {/* Botón de Guardar Registro */}
-      <button
-        onClick={registrarEntrada}
-        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition-colors shadow-lg font-mono tracking-wider uppercase text-xs mt-4"
-      >
-        Guardar Registro de Báscula
-      </button>
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition"
+        >
+          {loading ? 'Registrando...' : 'Guardar Pesaje'}
+        </button>
+      </form>
     </div>
-  );
-}
-    </div>
-  );
+  )
 }
