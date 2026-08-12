@@ -1,108 +1,82 @@
-"use client";
+'use client'
 
-import Link from "next/link";
-import { ArrowLeft, Lock, EyeOff } from "lucide-react";
-import { CyberCard } from "@/components/CyberCard";
+import { useState, useEffect } from 'react'
+import { createClient } from '@/lib/supabase'
 
-export default function TelemetriaGPSSistema() {
+interface Ubicacion {
+  id: string
+  latitud: number
+  longitud: number
+  created_at: string
+}
+
+export default function RastreoPage() {
+  const [cargaId, setCargaId] = useState('')
+  const [ubicaciones, setUbicaciones] = useState<Ubicacion[]>([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const supabase = createClient()
+
+  const fetchUbicaciones = async () => {
+    if (!cargaId) return
+    setLoading(true)
+    setError(null)
+
+    const { data, error: fetchError } = await supabase
+      .from('rastreo_ubicaciones')
+      .select('*')
+      .eq('carga_id', cargaId)
+      .order('created_at', { ascending: false })
+
+    if (fetchError) {
+      setError(fetchError.message)
+    } else if (data) {
+      setUbicaciones(data)
+    }
+    setLoading(false)
+  }
+
   return (
-    <div className="min-h-screen text-slate-100 p-4 max-w-md mx-auto space-y-4 pb-24 font-sans">
+    <div className="min-h-screen bg-black text-white p-6 max-w-3xl mx-auto">
+      <h1 className="text-2xl font-bold mb-6">Telemetría y Rastreo en Tiempo Real</h1>
       
-      {/* HEADER */}
-      <div className="flex items-center gap-3 border-b border-slate-800 pb-3">
-        <Link href="/" className="p-2 bg-[#12151c] border border-slate-800 rounded-xl text-slate-300">
-          <ArrowLeft className="w-5 h-5" />
-        </Link>
-        <div>
-          <span className="text-[10px] font-mono text-emerald-400 uppercase tracking-widest flex items-center gap-1 font-bold">
-            <Lock className="w-3 h-3" /> CANAL PRIVADO RESTRINGIDO
-          </span>
-          <h1 className="text-lg font-bold text-white">RASTREO GPS EN VIVO</h1>
-        </div>
+      <div className="flex gap-2 mb-6">
+        <input
+          type="text"
+          placeholder="Ingresa el ID de la Carga"
+          className="flex-1 p-2.5 rounded bg-zinc-800 border border-zinc-700 text-white"
+          value={cargaId}
+          onChange={(e) => setCargaId(e.target.value)}
+        />
+        <button
+          onClick={fetchUbicaciones}
+          className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 rounded font-semibold transition"
+        >
+          Consultar
+        </button>
       </div>
 
-      {/* AVISO DE PRIVACIDAD OPERATIVA */}
-      <div className="bg-[#12151c] p-3 rounded-xl border border-emerald-500/30 flex items-center gap-2.5 text-xs">
-        <EyeOff className="w-5 h-5 text-emerald-400 shrink-0" />
-        <div className="text-[11px] text-slate-300 font-mono">
-          <strong className="text-white block font-bold">ACCESO PRIVADO RESTRINGIDO</strong>
-          Esta telemetría solo es visible para la fletera asignada y el solicitante de la carga. Ningún usuario externo tiene acceso a este mapa ni a las coordenadas del chofer.
-        </div>
-      </div>
+      {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
 
-      {/* MAPA VECTORIAL DE VÍAS Y RUTAS */}
-      <CyberCard badgeText="MAPA DE RUTA PRIVADO // TELEMETRÍA ENCRIPTADA">
-        <div className="relative w-full h-56 bg-[#07080a] rounded-xl border border-slate-800 overflow-hidden p-3 font-mono">
-          <div className="absolute inset-0 opacity-15 bg-[radial-gradient(#334155_1px,transparent_1px)] [background-size:12px_12px]" />
-
-          <svg className="absolute inset-0 w-full h-full stroke-slate-700 fill-none stroke-2" viewBox="0 0 300 200">
-            <path d="M 30 170 Q 80 140 150 110 T 270 30" strokeDasharray="4 4" className="stroke-slate-600" />
-            <path d="M 30 170 L 90 120 L 170 90 L 270 30" className="stroke-emerald-500 stroke-[3]" />
-            <circle cx="30" cy="170" r="5" className="fill-slate-100" />
-            <circle cx="90" cy="120" r="6" className="fill-amber-500 animate-ping" />
-            <circle cx="90" cy="120" r="4" className="fill-amber-400" />
-            <circle cx="170" cy="90" r="5" className="fill-rose-500" />
-            <circle cx="270" cy="30" r="5" className="fill-emerald-400" />
-          </svg>
-
-          <div className="absolute top-2 left-2 bg-[#12151c]/90 px-2 py-1 rounded border border-slate-800 text-[9px] text-slate-300">
-            ORIGEN: GDL
-          </div>
-          <div className="absolute bottom-2 right-2 bg-[#12151c]/90 px-2 py-1 rounded border border-slate-800 text-[9px] text-emerald-400 font-bold">
-            DESTINO: CULIACÁN
-          </div>
-          <div className="absolute top-1/2 left-1/3 bg-amber-950/80 text-amber-300 border border-amber-800 px-1.5 py-0.5 rounded text-[8px]">
-            PARADA: 42 MIN
-          </div>
-        </div>
-      </CyberCard>
-
-      {/* METRICAS DE TELEMETRIA */}
-      <div className="grid grid-cols-2 gap-2">
-        <CyberCard badgeText="VELOCIDAD ACTUAL">
-          <div className="text-center">
-            <span className="text-2xl font-black font-mono text-white">86 <span className="text-xs font-sans text-slate-400">km/h</span></span>
-            <span className="text-[10px] text-emerald-400 font-mono block mt-1">Autopista Cuota</span>
-          </div>
-        </CyberCard>
-
-        <CyberCard badgeText="CANAL DE TELEMETRÍA">
-          <div className="text-center">
-            <span className="text-2xl font-black font-mono text-emerald-400">PRIVADO</span>
-            <span className="text-[10px] text-slate-400 font-mono block mt-1">Encriptación AES-256</span>
-          </div>
-        </CyberCard>
-      </div>
-
-      {/* REGISTRO DE EVENTOS */}
-      <CyberCard badgeText="REGISTRO DE PARADAS PRIVADAS">
-        <div className="space-y-2 text-xs font-mono">
-          <div className="bg-[#0b0c0e] p-2.5 rounded-lg border border-slate-800 space-y-2">
-            <div className="flex justify-between items-center border-b border-slate-800/80 pb-1.5">
+      {loading ? (
+        <p className="text-zinc-500">Cargando datos GPS de la unidad...</p>
+      ) : ubicaciones.length > 0 ? (
+        <div className="space-y-3">
+          {ubicaciones.map((loc) => (
+            <div key={loc.id} className="p-4 bg-zinc-900 border border-zinc-800 rounded-xl flex justify-between items-center">
               <div>
-                <span className="text-slate-200 font-bold block">Caseta Tepic (Parada)</span>
-                <span className="text-[10px] text-slate-500">Km 142 • Libramiento</span>
+                <p className="font-mono text-sm text-blue-400">Lat: {loc.latitud}, Lon: {loc.longitud}</p>
+                <p className="text-xs text-zinc-500">{new Date(loc.created_at).toLocaleString()}</p>
               </div>
-              <div className="text-right">
-                <span className="text-amber-400 font-bold block">42 MIN</span>
-                <span className="text-[9px] text-slate-500">Carga Diésel</span>
-              </div>
+              <span className="text-xs px-2.5 py-1 rounded bg-zinc-800 text-emerald-400 border border-emerald-900">
+                Activo
+              </span>
             </div>
-
-            <div className="flex justify-between items-center">
-              <div>
-                <span className="text-slate-200 font-bold block">Revisión de Báscula SCT</span>
-                <span className="text-[10px] text-slate-500">Km 88 • Inspección</span>
-              </div>
-              <div className="text-right">
-                <span className="text-slate-300 font-bold block">15 MIN</span>
-                <span className="text-[9px] text-emerald-400">Peso Aprobado</span>
-              </div>
-            </div>
-          </div>
+          ))}
         </div>
-      </CyberCard>
-
+      ) : cargaId ? (
+        <p className="text-zinc-500">No se encontraron coordenadas registradas o no tienes permisos para ver esta carga.</p>
+      ) : null}
     </div>
-  );
+  )
 }
