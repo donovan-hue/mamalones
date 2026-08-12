@@ -13,6 +13,17 @@ export default function BasculaPage() {
   const pesoNeto = typeof pesoBruto === "number" && typeof pesoTara === "number" ? pesoBruto - pesoTara : 0;
   const mermaKg = typeof litrosDiesel === "number" ? (litrosDiesel * 0.835).toFixed(1) : "0.0";
 
+  // Función para registrar la información de la báscula
+  const registrarEntrada = async () => {
+    if (pesoBruto === "" || pesoTara === "") {
+      alert("Por favor ingresa los pesos requeridos.");
+      return;
+    }
+    console.log("Datos a enviar:", { pesoBruto, pesoTara, pesoNeto, litrosDiesel, mermaKg });
+    alert("¡Registro de báscula guardado!");
+    // En el Bloque 2 conectaremos esto con Supabase
+  };
+
   return (
     <div className="min-h-screen text-slate-100 p-4 max-w-md mx-auto space-y-4 pb-20 font-sans">
       <div className="flex items-center gap-3 border-b border-slate-800 pb-3">
@@ -81,6 +92,23 @@ export default function BasculaPage() {
           </div>
         </div>
       </CyberCard>
+              <div className="bg-[#0a0b0d] p-3 rounded-xl border border-slate-800/80 flex items-center justify-between">
+            <span className="text-slate-400">Descuento Merma (0.835 kg/L):</span>
+            <span className="text-slate-200 font-black">{mermaKg} KG</span>
+          </div>
+        </div>
+      </CyberCard>
+
+      {/* Botón de Guardar Registro */}
+      <button
+        onClick={registrarEntrada}
+        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition-colors shadow-lg font-mono tracking-wider uppercase text-xs mt-4"
+      >
+        Guardar Registro de Báscula
+      </button>
+    </div>
+  );
+}
     </div>
   );
 }

@@ -4,11 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { MapPin, ShieldCheck, ChevronRight, Plus, ArrowLeft, Loader2, Lock } from "lucide-react";
 import { CyberCard } from "@/components/CyberCard";
-import { createClient } from "@supabase/supabase-js";
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co";
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder";
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+import { supabase } from "@/lib/supabase";
 
 interface Carga {
   id: string;
@@ -55,7 +51,16 @@ export default function TableroCargasProduccion() {
 
   useEffect(() => {
     async function fetchCargas() {
-      try {
+        setLoading(true);
+
+       if (!supabase) {
+  setCargas(filter === "escrow"
+    ? CARGAS_DEMO.filter(c => c.escrow_activo)
+    : CARGAS_DEMO);
+  setLoading(false);
+  return;
+}
+  // SOLO SE MUESTRAN CARGAS CON ESTATUS 'disponible'try {
         setLoading(true);
 
         // SOLO SE MUESTRAN CARGAS CON ESTATUS 'disponible'

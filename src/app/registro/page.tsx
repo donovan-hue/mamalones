@@ -1,136 +1,110 @@
-"use client";
+'use client'
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { ArrowLeft, User, Shield, FileText, Truck } from "lucide-react";
-import { CyberCard } from "@/components/CyberCard";
-import { createClient } from "@supabase/supabase-js";
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export default function RegistroPage() {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [nombre, setNombre] = useState('')
+  const [rol, setRol] = useState<'solicitante' | 'dueno_fletera' | 'chofer'>('solicitante')
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+  const router = useRouter()
+  const supabase = createClient()
 
-export default function RegistroChoferProduccion() {
-  const router = useRouter();
-  const [nombre, setNombre] = useState("");
-  const [licencia, setLicencia] = useState("");
-  const [placas, setPlacas] = useState("");
-  const [seguro, setSeguro] = useState("");
-  const [loading, setLoading] = useState(false);
+  const handleRegistro = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setError(null)
 
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+    const { data, error: signUpError } = await supabase.auth.signUp({
+      email,
+      password,
+    })
 
-    try {
-      const { error } = await supabase.from("expedientes").insert([
-        {
-          nombre_operador: nombre,
-          licencia_federal: licencia,
-          placas_unidad: placas,
-          poliza_seguro: seguro,
-          estatus_verificacion: "validado",
-          created_at: new Date().toISOString(),
-        },
-      ]);
-
-      if (error) throw error;
-      alert("¡Expediente de unidad registrado y verificado correctamente!");
-      router.push("/cargas");
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : "Verifica tu conexión";
-      alert("Error en registro: " + errorMessage);
-    } finally {
-      setLoading(false);
+    if (signUpError) {
+      setError(signUpError.message)
+      setLoading(false)
+      return
     }
-  };
+
+    if (data.user) {
+      const { error: profileError } = await supabase.from('profiles').insert([
+        {
+          id: data.user.id,
+          nombre,
+          rol,
+        },
+      ])
+
+      if (profileError) {
+        setError(profileError.message)
+        setLoading(false)
+        return
+      }
+
+      router.push('/')
+      router.refresh()
+    }
+  }
 
   return (
-    <div className="min-h-screen text-slate-100 p-4 max-w-md mx-auto space-y-4 pb-20 font-sans">
-      <div className="flex items-center gap-3 border-b border-slate-800 pb-3">
-        <Link href="/" className="p-2 bg-slate-900 border border-slate-700/80 rounded-xl text-slate-300 hover:text-white transition-colors">
-          <ArrowLeft className="w-5 h-5" />
-        </Link>
+    <div className="min-h-screen flex items-center justify-center bg-black text-white p-4">
+      <form onSubmit={handleRegistro} className="w-full max-w-md bg-zinc-900 border border-zinc-800 p-6 rounded-xl space-y-4">
+        <h1 className="text-2xl font-bold text-center">Registro de Usuario</h1>
+        {error && <p className="text-red-500 text-sm">{error}</p>}
         <div>
-          <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest">EXPEDIENTE</span>
-          <h1 className="text-lg font-black tracking-wider text-slate-100 italic">ALTA DE UNIDAD</h1>
+          <label className="block text-sm font-medium mb-1">Nombre Completo</label>
+          <input
+            type="text"
+            required
+            className="w-full p-2 rounded bg-zinc-800 border border-zinc-700 text-white"
+            value={nombre}
+            onChange={(e) => setNombre(e.target.value)}
+          />
         </div>
-      </div>
-
-      <CyberCard badgeText="FICHA TÉCNICA">
-        <form onSubmit={handleRegister} className="space-y-3">
-          <div className="space-y-1">
-            <label className="text-[10px] font-mono font-bold text-slate-400 uppercase">Nombre Completo Operador</label>
-            <div className="relative">
-              <User className="absolute left-3 top-3 w-4 h-4 text-slate-500" />
-              <input
-                type="text"
-                required
-                placeholder="Nombre del Chofer"
-                value={nombre}
-                onChange={(e) => setNombre(e.target.value)}
-                className="w-full bg-[#0a0b0d] border border-slate-800 focus:border-slate-400 rounded-xl p-2.5 pl-9 text-xs text-slate-100 outline-none font-mono"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-[10px] font-mono font-bold text-slate-400 uppercase">Licencia Federal Folio</label>
-            <div className="relative">
-              <FileText className="absolute left-3 top-3 w-4 h-4 text-slate-500" />
-              <input
-                type="text"
-                required
-                placeholder="FED-8839201"
-                value={licencia}
-                onChange={(e) => setLicencia(e.target.value)}
-                className="w-full bg-[#0a0b0d] border border-slate-800 focus:border-slate-400 rounded-xl p-2.5 pl-9 text-xs text-slate-100 outline-none font-mono"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-2">
-            <div className="space-y-1">
-              <label className="text-[10px] font-mono font-bold text-slate-400 uppercase">Placas Unidad</label>
-              <div className="relative">
-                <Truck className="absolute left-3 top-3 w-4 h-4 text-slate-500" />
-                <input
-                  type="text"
-                  required
-                  placeholder="88-AA-1B"
-                  value={placas}
-                  onChange={(e) => setPlacas(e.target.value)}
-                  className="w-full bg-[#0a0b0d] border border-slate-800 focus:border-slate-400 rounded-xl p-2.5 pl-9 text-xs text-slate-100 outline-none font-mono uppercase"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-[10px] font-mono font-bold text-slate-400 uppercase">Póliza Seguro</label>
-              <div className="relative">
-                <Shield className="absolute left-3 top-3 w-4 h-4 text-slate-500" />
-                <input
-                  type="text"
-                  required
-                  placeholder="POL-991823"
-                  value={seguro}
-                  onChange={(e) => setSeguro(e.target.value)}
-                  className="w-full bg-[#0a0b0d] border border-slate-800 focus:border-slate-400 rounded-xl p-2.5 pl-9 text-xs text-slate-100 outline-none font-mono uppercase"
-                />
-              </div>
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-gradient-to-r from-slate-200 via-slate-300 to-slate-400 text-slate-950 font-black py-3 rounded-xl text-xs tracking-wider uppercase transition-all shadow-xl border border-white/40 disabled:opacity-50 mt-2"
+        <div>
+          <label className="block text-sm font-medium mb-1">Correo Electrónico</label>
+          <input
+            type="email"
+            required
+            className="w-full p-2 rounded bg-zinc-800 border border-zinc-700 text-white"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Contraseña</label>
+          <input
+            type="password"
+            required
+            className="w-full p-2 rounded bg-zinc-800 border border-zinc-700 text-white"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Rol</label>
+          <select
+            className="w-full p-2 rounded bg-zinc-800 border border-zinc-700 text-white"
+            value={rol}
+            onChange={(e) => setRol(e.target.value as any)}
           >
-            {loading ? "Validando Ficha..." : "Guardar & Activar Expediente"}
-          </button>
-        </form>
-      </CyberCard>
+            <option value="solicitante">Solicitante de Servicio</option>
+            <option value="dueno_fletera">Dueño de Fletera</option>
+            <option value="chofer">Chofer</option>
+          </select>
+        </div>
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full py-2 bg-blue-600 hover:bg-blue-700 rounded font-semibold transition"
+        >
+          {loading ? 'Cargando...' : 'Registrarse'}
+        </button>
+      </form>
     </div>
-  );
+  )
 }
