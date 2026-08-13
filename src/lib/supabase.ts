@@ -4,5 +4,3 @@ import { supabaseAnonKey, supabaseUrl } from './env'
 export function createClient() {
   return createBrowserClient(supabaseUrl, supabaseAnonKey || 'public-anon-placeholder')
 }
-
-export const supabase = createClient()
