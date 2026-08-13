@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import AppShell from '@/components/AppShell'
 import { createClient } from '@/lib/supabase'
+import { getViajeActivo } from '@/lib/viajeActivo'
 
 async function hashTexto(t: string) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t))
@@ -11,6 +12,7 @@ async function hashTexto(t: string) {
 
 export default function ContratosPage() {
   const [viajeId, setViajeId] = useState('')
+  useEffect(() => setViajeId(getViajeActivo()), [])
   const [tarifa, setTarifa] = useState(45000)
   const [hash, setHash] = useState<string | null>(null)
   const [msg, setMsg] = useState<string | null>(null)

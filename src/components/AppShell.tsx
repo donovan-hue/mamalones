@@ -1,8 +1,10 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import PanicButton from './PanicButton'
+import { getViajeActivo } from '@/lib/viajeActivo'
 
 const NAV = [
   { href: '/dashboard', label: 'Panel' },
@@ -26,6 +28,8 @@ export default function AppShell({
   subtitle?: string
 }) {
   const path = usePathname()
+  const [viaje, setViaje] = useState('')
+  useEffect(() => setViaje(getViajeActivo()), [path])
   return (
     <div className="min-h-screen bg-black text-white">
       <header className="border-b border-zinc-900 px-4 py-3 flex items-center justify-between gap-3">
@@ -51,6 +55,11 @@ export default function AppShell({
           </Link>
         ))}
       </nav>
+      {viaje && (
+        <p className="px-4 pt-2 text-[10px] text-zinc-500 font-mono truncate">
+          Viaje activo: {viaje}
+        </p>
+      )}
       <div className="p-4 max-w-3xl mx-auto space-y-4">{children}</div>
     </div>
   )

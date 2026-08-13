@@ -1,13 +1,15 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import AppShell from '@/components/AppShell'
 import { createClient } from '@/lib/supabase'
+import { getViajeActivo } from '@/lib/viajeActivo'
 
 type Tipo = 'volante' | 'descanso' | 'carga' | 'descarga'
 
 export default function BitacoraPage() {
   const [viajeId, setViajeId] = useState('')
+  useEffect(() => setViajeId(getViajeActivo()), [])
   const [tipo, setTipo] = useState<Tipo>('volante')
   const [minutos, setMinutos] = useState(240)
   const [regs, setRegs] = useState<{ tipo: Tipo; minutos: number }[]>([])

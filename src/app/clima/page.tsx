@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import AppShell from '@/components/AppShell'
 import { createClient } from '@/lib/supabase'
+import { getViajeActivo } from '@/lib/viajeActivo'
 
 const MUESTRA = [
   { tipo: 'cierre', sev: 'alta', d: 'Bloqueo en tramo Matehuala–Saltillo. Desvío por 57D lento.' },
@@ -12,6 +13,7 @@ const MUESTRA = [
 
 export default function ClimaPage() {
   const [viajeId, setViajeId] = useState('')
+  useEffect(() => setViajeId(getViajeActivo()), [])
   const [msg, setMsg] = useState<string | null>(null)
 
   const empujar = async (a: (typeof MUESTRA)[0]) => {

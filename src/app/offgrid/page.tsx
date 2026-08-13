@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import AppShell from '@/components/AppShell'
 import { createClient } from '@/lib/supabase'
+import { getViajeActivo } from '@/lib/viajeActivo'
 
 function cifrarSimple(texto: string) {
   return btoa(unescape(encodeURIComponent(texto)))
@@ -10,6 +11,7 @@ function cifrarSimple(texto: string) {
 
 export default function OffgridPage() {
   const [viajeId, setViajeId] = useState('')
+  useEffect(() => setViajeId(getViajeActivo()), [])
   const [lat, setLat] = useState('21.321')
   const [lon, setLon] = useState('-101.934')
   const [canal, setCanal] = useState<'sms' | 'satelital' | 'baliza'>('sms')

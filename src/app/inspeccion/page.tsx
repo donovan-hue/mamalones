@@ -7,6 +7,7 @@ import { getViajeActivo } from '@/lib/viajeActivo'
 
 export default function InspeccionPage() {
   const [viajeId, setViajeId] = useState('')
+  useEffect(() => setViajeId(getViajeActivo()), [])
   const [merc, setMerc] = useState('')
   const [sellos, setSellos] = useState('')
   const [caja, setCaja] = useState('')

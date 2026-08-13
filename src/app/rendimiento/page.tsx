@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import AppShell from '@/components/AppShell'
 import { detectarAnomaliaCombustible } from '@/lib/calculoAnticipos'
 import { createClient } from '@/lib/supabase'
+import { getViajeActivo } from '@/lib/viajeActivo'
 
 export default function RendimientoPage() {
   const [peso, setPeso] = useState(28)
@@ -11,6 +12,7 @@ export default function RendimientoPage() {
   const [km, setKm] = useState(720)
   const [desnivel, setDesnivel] = useState(890)
   const [viajeId, setViajeId] = useState('')
+  useEffect(() => setViajeId(getViajeActivo()), [])
   const [msg, setMsg] = useState<string | null>(null)
   const r = useMemo(() => detectarAnomaliaCombustible(peso, litros, km, desnivel), [peso, litros, km, desnivel])
 
