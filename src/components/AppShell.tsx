@@ -40,7 +40,19 @@ export default function AppShell({
           <h1 className="text-sm font-semibold mt-0.5">{title}</h1>
           {subtitle && <p className="text-[10px] text-zinc-500 uppercase">{subtitle}</p>}
         </div>
-        <PanicButton />
+        <div className="flex items-center gap-2">
+          <button
+            onClick={async () => {
+              const { createClient } = await import('@/lib/supabase')
+              await createClient().auth.signOut()
+              location.href = '/login'
+            }}
+            className="text-[10px] uppercase text-zinc-500"
+          >
+            Salir
+          </button>
+          <PanicButton />
+        </div>
       </header>
       <nav className="flex gap-1 overflow-x-auto px-3 py-2 border-b border-zinc-900 text-[10px] font-bold uppercase">
         {NAV.map((n) => (
