@@ -10,8 +10,9 @@ export default function Navbar() {
         <Logo className="h-7 w-auto" />
       </Link>
       <div className="flex gap-4 text-sm text-zinc-400 font-medium">
-        <Link href="/cargas" className="hover:text-white transition">Cargas</Link>
-        <Link href="/rastreo" className="hover:text-white transition">Rastreo</Link>
+        <Link href="/anticipos" className="hover:text-white transition">Anticipos</Link>
+        <Link href="/rastreo" className="hover:text-white transition">GPS</Link>
+        <Link href="/billetera" className="hover:text-white transition">Liquidación</Link>
         <Link href="/login" className="hover:text-white transition">Cuenta</Link>
       </div>
     </nav>

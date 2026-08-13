@@ -1,36 +1,36 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Mamalones / Kronos-space
 
-## Getting Started
+Plataforma logística (Next.js + Supabase) para fleteras: anticipos, telemetría **privada**, Carta Porte, acuerdos, SOS, off-grid, combustible, liquidación POD, NOM-087, firma digital, reputación, peaje y expediente.
 
-First, run the development server:
+## Arranque
 
 ```bash
+cp .env.example .env.local
+# pega URL y anon key de tu proyecto en https://supabase.com/dashboard/org/dgecxydigzwhoiyynilk
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+En Supabase → SQL Editor ejecuta `supabase/schema.sql` (tablas + RLS: la telemetría solo la ven solicitante y dueño).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Módulos
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Ruta | Qué hace |
+|---|---|
+| `/anticipos` | Viáticos + diésel + casetas antes de arrancar |
+| `/rastreo` | GPS privado (RLS) |
+| `/credenciales` | Intercambio de licencia al postularse |
+| `/negociacion` | Horas CEDIS y tarifa neta |
+| `/seguridad` | Botón SOS |
+| `/offgrid` | SMS/satélite cifrado |
+| `/rendimiento` | Combustible vs peso |
+| `/billetera` | Liquidación al POD |
+| `/inspeccion` | Fotos pre-arranque |
+| `/bitacora` | NOM-087 |
+| `/contratos` | Firma SHA-256 |
+| `/reputacion` | Calificación cruzada |
+| `/peaje` | TAG/IAVE |
+| `/expediente` | Docs y caducidad |
+| `/clima` | Bloqueos y clima |
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+No puedo entrar a tu org de Supabase desde aquí: crea un proyecto, corre el SQL y pon las keys en `.env.local`.

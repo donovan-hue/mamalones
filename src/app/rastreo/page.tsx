@@ -1,82 +1,92 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+import AppShell from '@/components/AppShell'
 import { createClient } from '@/lib/supabase'
+import { puedeVerTelemetria, rolSobreViaje } from '@/lib/privacidad'
 
 interface Ubicacion {
   id: string
   latitud: number
   longitud: number
   created_at: string
+  fuente?: string
 }
 
 export default function RastreoPage() {
-  const [cargaId, setCargaId] = useState('')
+  const [viajeId, setViajeId] = useState('')
   const [ubicaciones, setUbicaciones] = useState<Ubicacion[]>([])
-  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [aviso, setAviso] = useState<string | null>(null)
   const supabase = createClient()
 
-  const fetchUbicaciones = async () => {
-    if (!cargaId) return
-    setLoading(true)
+  const consultar = async () => {
     setError(null)
-
+    setAviso(null)
+    setUbicaciones([])
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      setError('Inicia sesión. La telemetría no es pública.')
+      return
+    }
+    const { data: viaje, error: vErr } = await supabase.from('viajes').select('*').eq('id', viajeId).maybeSingle()
+    if (vErr) {
+      setError(vErr.message)
+      return
+    }
+    if (!viaje) {
+      setError('Viaje no encontrado o no eres parte del contrato.')
+      return
+    }
+    const rol = rolSobreViaje(user.id, viaje)
+    if (!puedeVerTelemetria(rol)) {
+      setAviso(
+        rol === 'operador'
+          ? 'Tu posición se transmite al dueño y al solicitante. No hay mapa público ni para terceros.'
+          : 'Acceso denegado. Solo el solicitante del flete y el dueño de la fletera ven la ruta activa.'
+      )
+      return
+    }
     const { data, error: fetchError } = await supabase
       .from('rastreo_ubicaciones')
       .select('*')
-      .eq('carga_id', cargaId)
+      .or(`viaje_id.eq.${viajeId},carga_id.eq.${viajeId}`)
       .order('created_at', { ascending: false })
-
-    if (fetchError) {
-      setError(fetchError.message)
-    } else if (data) {
-      setUbicaciones(data)
-    }
-    setLoading(false)
+    if (fetchError) setError(fetchError.message)
+    else setUbicaciones(data || [])
   }
 
   return (
-    <div className="min-h-screen bg-black text-white p-6 max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Telemetría y Rastreo en Tiempo Real</h1>
-      
-      <div className="flex gap-2 mb-6">
+    <AppShell title="Telemetría privada" subtitle="Visible solo solicitante + dueño">
+      <div className="rounded-2xl border border-emerald-900/50 bg-emerald-950/20 p-3 text-[11px] text-emerald-300">
+        Canal cerrado. No hay feed general ni exposición a otras fleteras.
+      </div>
+      <div className="flex gap-2">
         <input
-          type="text"
-          placeholder="Ingresa el ID de la Carga"
-          className="flex-1 p-2.5 rounded bg-zinc-800 border border-zinc-700 text-white"
-          value={cargaId}
-          onChange={(e) => setCargaId(e.target.value)}
+          placeholder="UUID del viaje"
+          className="flex-1 p-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-sm"
+          value={viajeId}
+          onChange={(e) => setViajeId(e.target.value)}
         />
-        <button
-          onClick={fetchUbicaciones}
-          className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 rounded font-semibold transition"
-        >
-          Consultar
+        <button onClick={consultar} className="px-4 py-2 bg-white text-black rounded-xl text-xs font-bold">
+          Abrir
         </button>
       </div>
-
-      {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
-
-      {loading ? (
-        <p className="text-zinc-500">Cargando datos GPS de la unidad...</p>
-      ) : ubicaciones.length > 0 ? (
-        <div className="space-y-3">
-          {ubicaciones.map((loc) => (
-            <div key={loc.id} className="p-4 bg-zinc-900 border border-zinc-800 rounded-xl flex justify-between items-center">
-              <div>
-                <p className="font-mono text-sm text-blue-400">Lat: {loc.latitud}, Lon: {loc.longitud}</p>
-                <p className="text-xs text-zinc-500">{new Date(loc.created_at).toLocaleString()}</p>
-              </div>
-              <span className="text-xs px-2.5 py-1 rounded bg-zinc-800 text-emerald-400 border border-emerald-900">
-                Activo
-              </span>
+      {error && <p className="text-red-400 text-xs">{error}</p>}
+      {aviso && <p className="text-amber-300 text-xs">{aviso}</p>}
+      <div className="space-y-2">
+        {ubicaciones.map((loc) => (
+          <div key={loc.id} className="p-3 bg-zinc-950 border border-zinc-800 rounded-xl text-xs flex justify-between">
+            <div>
+              <p className="font-mono text-emerald-400">
+                {loc.latitud.toFixed(5)}, {loc.longitud.toFixed(5)}
+              </p>
+              <p className="text-zinc-500">{new Date(loc.created_at).toLocaleString()}</p>
             </div>
-          ))}
-        </div>
-      ) : cargaId ? (
-        <p className="text-zinc-500">No se encontraron coordenadas registradas o no tienes permisos para ver esta carga.</p>
-      ) : null}
-    </div>
+            <span className="text-[10px] uppercase text-zinc-400">{loc.fuente || 'celular'}</span>
+          </div>
+        ))}
+      </div>
+    </AppShell>
   )
 }
