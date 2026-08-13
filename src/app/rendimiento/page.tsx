@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import AppShell from '@/components/AppShell'
 import { detectarAnomaliaCombustible } from '@/lib/calculoAnticipos'
 import { createClient } from '@/lib/supabase'
