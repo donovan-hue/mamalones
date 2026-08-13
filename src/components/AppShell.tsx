@@ -13,6 +13,7 @@ const NAV = [
   { href: '/rastreo', label: 'GPS' },
   { href: '/entrega', label: 'POD' },
   { href: '/billetera', label: 'Pago' },
+  { href: '/configuracion', label: 'Ajustes' },
 ]
 
 export default function AppShell({

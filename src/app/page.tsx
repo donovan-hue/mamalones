@@ -50,6 +50,7 @@ export default function PortadaPage() {
       </main>
 
       <footer className="text-center text-xs text-zinc-600 py-4 border-t border-zinc-900">
+        <a href="/dashboard" className="text-zinc-400 underline mr-3">Panel</a>
         kronos-space.com © 2026 — Plataforma de Gestión Logística
       </footer>
     </div>

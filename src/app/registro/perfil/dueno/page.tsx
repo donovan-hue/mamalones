@@ -1,121 +1,126 @@
 'use client'
-import { useState } from 'react'
+
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import AppShell from '@/components/AppShell'
+import { createClient } from '@/lib/supabase'
+import { setViajeActivo } from '@/lib/viajeActivo'
+
+type Viaje = {
+  id: string
+  folio: string | null
+  origen: string
+  destino: string
+  tarifa_neta: number | null
+  estado: string | null
+}
 
 export default function PerfilDueno() {
   const [seccion, setSeccion] = useState<'unidad' | 'ofertas' | 'seguridad' | 'bitacora'>('unidad')
+  const [viajes, setViajes] = useState<Viaje[]>([])
+  const [msg, setMsg] = useState<string | null>(null)
+  const [estatus, setEstatus] = useState('en_transito')
+
+  const cargar = async () => {
+    const supabase = createClient()
+    const { data } = await supabase.from('viajes').select('*').order('created_at', { ascending: false })
+    setViajes((data as Viaje[]) || [])
+  }
+  useEffect(() => {
+    cargar()
+  }, [])
+
+  const activo = viajes.find((v) => v.estado === 'asignado' || v.estado === 'aceptado' || v.estado === 'en_transito') || viajes[0]
+
+  const actualizar = async () => {
+    if (!activo) return
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    const { error } = await supabase.from('viajes').update({ estado: estatus, dueno_id: user?.id }).eq('id', activo.id)
+    setViajeActivo(activo.id)
+    setMsg(error ? error.message : `Estatus ${estatus} guardado.`)
+    cargar()
+  }
+
+  const tomar = async (v: Viaje) => {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    const { error } = await supabase.from('viajes').update({ dueno_id: user?.id, estado: 'asignado' }).eq('id', v.id)
+    setViajeActivo(v.id)
+    setMsg(error ? error.message : 'Carga tomada por tu fletera.')
+    cargar()
+  }
+
+  const contra = async (v: Viaje) => {
+    const n = Number(prompt('Contraoferta MXN', String(v.tarifa_neta || 0)))
+    if (!n) return
+    const supabase = createClient()
+    await supabase.from('negociaciones').insert({ viaje_id: v.id, tarifa_propuesta: n, estado: 'contraoferta' })
+    await supabase.from('viajes').update({ tarifa_neta: n }).eq('id', v.id)
+    setMsg('Contraoferta registrada.')
+    cargar()
+  }
 
   return (
-    <div className="min-h-screen bg-black text-white p-4 space-y-4">
-      <header className="border-b border-zinc-800 pb-3 flex justify-between items-center">
-        <div>
-          <h1 className="text-xs font-black uppercase tracking-widest text-white">KRONOS-SPACE.COM</h1>
-          <p className="text-[9px] text-zinc-500 uppercase tracking-wider">Panel Propietario | Dueño - Operador</p>
-        </div>
-        <Link href="/registro" className="text-[10px] bg-zinc-900 border border-zinc-800 px-3 py-1.5 rounded-xl font-bold hover:bg-zinc-800 transition-all">← Volver</Link>
-      </header>
-
-      {/* Submenú de configuraciones para el Dueño-Operador */}
+    <AppShell title="Dueño de fletera" subtitle="Unidad · bolsa · protocolos · gastos">
       <div className="grid grid-cols-2 gap-2">
-        <button onClick={() => setSeccion('unidad')} className={`py-2.5 px-3 rounded-xl text-[10px] font-bold uppercase tracking-wider border transition-all ${seccion === 'unidad' ? 'bg-white text-black border-white' : 'bg-zinc-950 text-zinc-400 border-zinc-800'}`}>
-          🚚 Mi Unidad Activa
-        </button>
-        <button onClick={() => setSeccion('ofertas')} className={`py-2.5 px-3 rounded-xl text-[10px] font-bold uppercase tracking-wider border transition-all ${seccion === 'ofertas' ? 'bg-white text-black border-white' : 'bg-zinc-950 text-zinc-400 border-zinc-800'}`}>
-          💼 Cargas y Ofertas
-        </button>
-        <button onClick={() => setSeccion('seguridad')} className={`py-2.5 px-3 rounded-xl text-[10px] font-bold uppercase tracking-wider border transition-all ${seccion === 'seguridad' ? 'bg-white text-black border-white' : 'bg-zinc-950 text-zinc-400 border-zinc-800'}`}>
-          🛡️ Protocolos y Alertas
-        </button>
-        <button onClick={() => setSeccion('bitacora')} className={`py-2.5 px-3 rounded-xl text-[10px] font-bold uppercase tracking-wider border transition-all ${seccion === 'bitacora' ? 'bg-white text-black border-white' : 'bg-zinc-950 text-zinc-400 border-zinc-800'}`}>
-          ⛽ Anticipos y Gastos
-        </button>
+        {(['unidad', 'ofertas', 'seguridad', 'bitacora'] as const).map((s) => (
+          <button key={s} onClick={() => setSeccion(s)} className={`py-2.5 rounded-xl text-[10px] font-bold uppercase border ${seccion === s ? 'bg-white text-black' : 'bg-zinc-950 text-zinc-400 border-zinc-800'}`}>
+            {s}
+          </button>
+        ))}
       </div>
+      {msg && <p className="text-xs text-emerald-400">{msg}</p>}
 
-      {/* Contenido Dinámico del Dueño-Operador */}
-      <div className="bg-zinc-950 border border-zinc-800 rounded-3xl p-5 space-y-4 shadow-2xl">
-        
-        {seccion === 'unidad' && (
-          <div className="space-y-3">
-            <h2 className="text-xs font-black uppercase text-zinc-300 tracking-wider">Estado de Mi Unidad Propietaria</h2>
-            <div className="p-3 bg-zinc-900 rounded-2xl border border-zinc-800 space-y-2 text-xs">
-              <div className="flex justify-between">
-                <span className="text-zinc-400">Económico / Tracto:</span>
-                <span className="font-bold text-white">Kenworth T680 (ECO-01)</span>
+      {seccion === 'unidad' && (
+        <div className="vercel-card rounded-3xl p-5 space-y-3 text-xs">
+          {activo ? (
+            <>
+              <p className="font-bold">{activo.folio} · {activo.origen} → {activo.destino}</p>
+              <p className="text-zinc-500">Estado actual: {activo.estado}</p>
+              <select value={estatus} onChange={(e) => setEstatus(e.target.value)} className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-2.5">
+                <option value="en_transito">En tránsito</option>
+                <option value="en_bascula">En báscula</option>
+                <option value="entregado">Entregado</option>
+              </select>
+              <button onClick={actualizar} className="w-full py-3 bg-white text-black font-black uppercase rounded-xl">Actualizar estatus</button>
+            </>
+          ) : (
+            <p className="text-zinc-500">Aún no hay viaje. Toma uno en ofertas.</p>
+          )}
+        </div>
+      )}
+
+      {seccion === 'ofertas' && (
+        <div className="space-y-2">
+          {viajes.map((v) => (
+            <div key={v.id} className="vercel-card rounded-2xl p-3 text-xs space-y-2">
+              <div className="flex justify-between font-bold">
+                <span>{v.origen} → {v.destino}</span>
+                <span className="text-emerald-400">${Number(v.tarifa_neta || 0).toLocaleString('es-MX')}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-zinc-400">Estado de Ruta:</span>
-                <span className="font-bold text-emerald-400">En Tránsito (Privado)</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-zinc-400">Telemetría GPS:</span>
-                <span className="font-bold text-white">Conectado (Visible solo tú y cliente)</span>
+              <div className="flex gap-2">
+                <button onClick={() => tomar(v)} className="flex-1 py-2 bg-white text-black rounded-lg font-bold uppercase text-[10px]">Tomar carga</button>
+                <button onClick={() => contra(v)} className="flex-1 py-2 bg-zinc-800 rounded-lg font-bold uppercase text-[10px]">Contraoferta</button>
               </div>
             </div>
-            <button className="w-full py-3 bg-white text-black font-black uppercase text-xs rounded-xl hover:bg-zinc-200 transition-all">
-              Actualizar Estatus de Viaje
-            </button>
-          </div>
-        )}
+          ))}
+        </div>
+      )}
 
-        {seccion === 'ofertas' && (
-          <div className="space-y-3">
-            <h2 className="text-xs font-black uppercase text-zinc-300 tracking-wider">Bolsa de Cargas y Propuestas de Tarifa</h2>
-            <div className="p-3 bg-zinc-900 rounded-2xl border border-zinc-800 space-y-2 text-xs">
-              <div className="flex justify-between items-center">
-                <span className="font-bold text-white">GDL ➔ MTY (Caja Seca 53')</span>
-                <span className="text-emerald-400 font-black">$45,000 MXN</span>
-              </div>
-              <p className="text-[10px] text-zinc-400">Generador: Empresa Industrial del Norte. Pago de anticipo del 30% inmediato.</p>
-              <div className="flex gap-2 pt-1">
-                <button className="flex-1 py-2 bg-white text-black font-bold rounded-lg text-[10px] uppercase">Aceptar y Tomar Carga</button>
-                <button className="flex-1 py-2 bg-zinc-800 text-zinc-300 font-bold rounded-lg text-[10px] uppercase">Enviar Contraoferta</button>
-              </div>
-            </div>
-          </div>
-        )}
+      {seccion === 'seguridad' && (
+        <div className="space-y-2 text-xs">
+          <Link href="/seguridad" className="block vercel-card rounded-2xl p-4">Botón de pánico →</Link>
+          <Link href="/clima" className="block vercel-card rounded-2xl p-4">Clima y bloqueos →</Link>
+        </div>
+      )}
 
-        {seccion === 'seguridad' && (
-          <div className="space-y-3">
-            <h2 className="text-xs font-black uppercase text-zinc-300 tracking-wider">Protocolos de Seguridad Vial</h2>
-            <div className="space-y-2 text-xs">
-              <div className="p-3 bg-zinc-900 rounded-2xl border border-zinc-800 flex items-center justify-between">
-                <div>
-                  <p className="font-bold text-white">Botón de Pánico / Alerta Silenciosa</p>
-                  <p className="text-[10px] text-zinc-400">Notifica de inmediato al cliente y autoridades en ruta de emergencia.</p>
-                </div>
-                <span className="px-2 py-1 bg-red-950 text-red-400 text-[9px] font-bold rounded-lg border border-red-800">ACTIVO</span>
-              </div>
-              <div className="p-3 bg-zinc-900 rounded-2xl border border-zinc-800 flex items-center justify-between">
-                <div>
-                  <p className="font-bold text-white">Verificación de Paradas Seguras</p>
-                  <p className="text-[10px] text-zinc-400">Restringe paradas no autorizadas en tramos carreteros peligrosos.</p>
-                </div>
-                <input type="checkbox" defaultChecked className="w-4 h-4 accent-white" />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {seccion === 'bitacora' && (
-          <div className="space-y-3">
-            <h2 className="text-xs font-black uppercase text-zinc-300 tracking-wider">Control de Anticipos y Diesel</h2>
-            <div className="p-4 bg-zinc-900 rounded-2xl border border-zinc-800 space-y-2 text-xs">
-              <div className="flex justify-between">
-                <span className="text-zinc-400">Anticipo Recibido (Combustible):</span>
-                <span className="font-bold text-white">$13,500 MXN</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-zinc-400">Saldo Pendiente al Descargar (POD):</span>
-                <span className="font-bold text-emerald-400">$31,500 MXN</span>
-              </div>
-              <button className="w-full mt-2 py-2 bg-zinc-800 text-white font-bold rounded-xl text-[10px] uppercase">
-                Subir Comprobante de Gastos
-              </button>
-            </div>
-          </div>
-        )}
-
-      </div>
-    </div>
+      {seccion === 'bitacora' && (
+        <div className="space-y-2 text-xs">
+          <Link href="/anticipos" className="block vercel-card rounded-2xl p-4">Anticipo diésel / casetas →</Link>
+          <Link href="/expediente" className="block vercel-card rounded-2xl p-4">Subir comprobante al expediente →</Link>
+        </div>
+      )}
+    </AppShell>
   )
 }

@@ -1,84 +1,52 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import AppShell from '@/components/AppShell'
 import { createClient } from '@/lib/supabase'
+import { getViajeActivo } from '@/lib/viajeActivo'
 
 export default function CasetaPage() {
-  const [cargaId, setCargaId] = useState('')
+  const [viajeId, setViajeId] = useState('')
   const [tipoEvento, setTipoEvento] = useState<'entrada' | 'salida'>('entrada')
   const [observaciones, setObservaciones] = useState('')
   const [loading, setLoading] = useState(false)
   const [mensaje, setMensaje] = useState<string | null>(null)
-  const supabase = createClient()
 
-  const handleRegistroAcceso = async (e: React.FormEvent) => {
+  useEffect(() => setViajeId(getViajeActivo()), [])
+
+  const handle = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    setMensaje(null)
-
-    const { error } = await supabase.from('caseta_registros').insert([
-      {
-        carga_id: cargaId,
-        tipo_evento: tipoEvento,
-        observaciones,
-      },
-    ])
-
+    const supabase = createClient()
+    const { error } = await supabase.from('caseta_registros').insert({
+      viaje_id: viajeId,
+      carga_id: viajeId,
+      tipo_evento: tipoEvento,
+      observaciones,
+    })
     if (error) {
-      setMensaje(`Error: ${error.message}`)
-    } else {
-      setMensaje(`Acceso de ${tipoEvento} registrado correctamente.`)
-      setCargaId('')
-      setObservaciones('')
-    }
+      await supabase.from('alertas_viales').insert({
+        viaje_id: viajeId || null,
+        tipo: 'caseta',
+        descripcion: `${tipoEvento}: ${observaciones}`,
+      })
+      setMensaje('Registrado en alertas de patio (tabla caseta opcional).')
+    } else setMensaje(`Acceso de ${tipoEvento} guardado.`)
     setLoading(false)
   }
 
   return (
-    <div className="min-h-screen bg-black text-white p-6 max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Control de Caseta / Acceso</h1>
-      {mensaje && <p className="mb-4 text-sm font-medium text-blue-400">{mensaje}</p>}
-      <form onSubmit={handleRegistroAcceso} className="space-y-4 bg-zinc-900 p-6 rounded-xl border border-zinc-800">
-        <div>
-          <label className="block text-sm font-medium mb-1">ID del Viaje / Carga</label>
-          <input
-            type="text"
-            required
-            placeholder="UUID del viaje"
-            className="w-full p-2.5 rounded bg-zinc-800 border border-zinc-700 text-white"
-            value={cargaId}
-            onChange={(e) => setCargaId(e.target.value)}
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium mb-1">Evento</label>
-          <select
-            className="w-full p-2.5 rounded bg-zinc-800 border border-zinc-700 text-white"
-            value={tipoEvento}
-            onChange={(e) => setTipoEvento(e.target.value as any)}
-          >
-            <option value="entrada">Entrada a Planta</option>
-            <option value="salida">Salida de Planta</option>
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium mb-1">Observaciones / Inspección</label>
-          <textarea
-            rows={3}
-            placeholder="Estatus de sellos, placas o detalles de la unidad..."
-            className="w-full p-2.5 rounded bg-zinc-800 border border-zinc-700 text-white"
-            value={observaciones}
-            onChange={(e) => setObservaciones(e.target.value)}
-          />
-        </div>
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition"
-        >
-          {loading ? 'Procesando...' : 'Registrar Acceso'}
-        </button>
+    <AppShell title="Caseta / acceso" subtitle="Entrada y salida de planta">
+      {mensaje && <p className="text-xs text-emerald-400">{mensaje}</p>}
+      <form onSubmit={handle} className="vercel-card rounded-3xl p-5 space-y-3 text-xs">
+        <input required value={viajeId} onChange={(e) => setViajeId(e.target.value)} placeholder="UUID viaje" className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-2.5" />
+        <select value={tipoEvento} onChange={(e) => setTipoEvento(e.target.value as 'entrada' | 'salida')} className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-2.5">
+          <option value="entrada">Entrada a planta</option>
+          <option value="salida">Salida de planta</option>
+        </select>
+        <textarea value={observaciones} onChange={(e) => setObservaciones(e.target.value)} placeholder="Sellos, placas, unidad" className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-2.5" />
+        <button disabled={loading} className="w-full py-3 bg-white text-black font-black uppercase rounded-xl">Registrar acceso</button>
       </form>
-    </div>
+    </AppShell>
   )
 }

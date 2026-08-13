@@ -19,6 +19,11 @@ const MODULOS = [
   { href: '/peaje', t: 'Peaje / TAG IAVE', d: 'Casetas de ruta y saldo telepeaje.' },
   { href: '/expediente', t: 'Expediente en nube', d: 'Pólizas, licencias y verificación mecánica.' },
   { href: '/clima', t: 'Clima y bloqueos', d: 'Alertas de cierre vial y desvíos.' },
+  { href: '/bascula', t: 'Báscula', d: 'Ticket de peso neto ligado al viaje.' },
+  { href: '/caseta', t: 'Caseta de planta', d: 'Entrada y salida con observación de sellos.' },
+  { href: '/fiscal', t: 'Carta Porte SAT', d: 'RFC y fracción sobre el viaje activo.' },
+  { href: '/incidentes', t: 'Incidentes', d: 'Reporte al centro de control.' },
+  { href: '/configuracion', t: 'Configuración', d: 'Perfil y RFC en la nube.' },
 ]
 
 const FLUJO = [

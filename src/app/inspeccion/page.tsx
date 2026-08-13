@@ -1,14 +1,15 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import AppShell from '@/components/AppShell'
 import { createClient } from '@/lib/supabase'
+import { getViajeActivo } from '@/lib/viajeActivo'
 
 export default function InspeccionPage() {
   const [viajeId, setViajeId] = useState('')
-  const [merc, setMerc] = useState(false)
-  const [sellos, setSellos] = useState(false)
-  const [caja, setCaja] = useState(false)
+  const [merc, setMerc] = useState('')
+  const [sellos, setSellos] = useState('')
+  const [caja, setCaja] = useState('')
   const [msg, setMsg] = useState<string | null>(null)
 
   const enviar = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -22,10 +23,10 @@ export default function InspeccionPage() {
     const { error } = await supabase.from('inspecciones_prearranque').insert({
       viaje_id: viajeId || null,
       operador_id: user?.id,
-      foto_mercancia: 'ok',
-      foto_sellos: 'ok',
-      foto_caja: 'ok',
-      checklist: { mercancia: true, sellos: true, caja: true },
+      foto_mercancia: merc,
+      foto_sellos: sellos,
+      foto_caja: caja,
+      checklist: { mercancia: true, sellos: true, caja: true, archivos: [merc, sellos, caja] },
     })
     setMsg(error ? error.message : 'Checklist sellado. Protege a la empresa ante reclamos de daño.')
   }
@@ -44,7 +45,7 @@ export default function InspeccionPage() {
   )
 }
 
-function Foto({ label, on }: { label: string; on: (v: boolean) => void }) {
+function Foto({ label, on }: { label: string; on: (v: string) => void }) {
   return (
     <label className="block vercel-card rounded-2xl p-3">
       <span className="text-zinc-400 uppercase text-[10px]">{label}</span>
@@ -54,7 +55,7 @@ function Foto({ label, on }: { label: string; on: (v: boolean) => void }) {
         capture="environment"
         required
         className="mt-2 block w-full text-[11px]"
-        onChange={(e) => on(!!e.target.files?.[0])}
+        onChange={(e) => on(e.target.files?.[0]?.name || '')}
       />
     </label>
   )
