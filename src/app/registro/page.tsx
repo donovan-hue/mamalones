@@ -31,17 +31,16 @@ export default function RegistroPage() {
 
     if (error) {
       setMensaje(`Error: ${error.message}`)
+      setLoading(false)
     } else {
-      setMensaje('Cuenta creada con éxito. Redirigiendo...')
-      setTimeout(() => router.push('/dashboard'), 1500)
+      setMensaje('Cuenta creada con éxito. Entrando...')
+      router.push('/registro/onboarding')
     }
-    setLoading(false)
   }
 
   return (
     <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-zinc-950 p-8 rounded-3xl border border-zinc-800 shadow-2xl text-center">
-        {/* Marca y Subtítulo con K y Guion */}
         <h1 className="text-3xl font-black tracking-wider text-white uppercase mb-1">
           kronos-space.com
         </h1>
