@@ -4,12 +4,14 @@ import { useEffect, useState } from 'react'
 import AppShell from '@/components/AppShell'
 import { createClient } from '@/lib/supabase'
 import { getViajeActivo } from '@/lib/viajeActivo'
+import { subirEvidencia } from '@/lib/storage'
 
 export default function EntregaPage() {
   const [viajeId, setViajeId] = useState('')
   const [receptor, setReceptor] = useState('')
   const [obs, setObs] = useState('')
   const [pod, setPod] = useState('')
+  const [podFile, setPodFile] = useState<File | null>(null)
   const [msg, setMsg] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -19,6 +21,16 @@ export default function EntregaPage() {
     e.preventDefault()
     setLoading(true)
     const supabase = createClient()
+    let podRef = pod
+    if (podFile) {
+      const up = await subirEvidencia(supabase, podFile, `pod/${viajeId || 'sin'}`)
+      if (up.error) {
+        setMsg(up.error)
+        setLoading(false)
+        return
+      }
+      podRef = up.path
+    }
     const { error: u } = await supabase.from('viajes').update({ estado: 'entregado' }).eq('id', viajeId)
     if (u) {
       setMsg(u.message)
@@ -32,7 +44,7 @@ export default function EntregaPage() {
       monto_flete: flete,
       anticipo_ya_pagado: 0,
       saldo: flete,
-      pod_url: pod || `POD ${receptor}`,
+      pod_url: podRef || `POD ${receptor}`,
       estado: 'liberado',
       liberado_at: new Date().toISOString(),
     })

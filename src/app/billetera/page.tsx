@@ -7,6 +7,7 @@ import { getViajeActivo } from '@/lib/viajeActivo'
 
 export default function BilleteraPage() {
   const [viajeId, setViajeId] = useState('')
+  useEffect(() => setViajeId(getViajeActivo()), [])
   const [flete, setFlete] = useState(45000)
   const [anticipo, setAnticipo] = useState(13500)
   const [pod, setPod] = useState('')
