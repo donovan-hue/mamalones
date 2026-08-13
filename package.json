@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "CSS_TRANSFORMER=postcss next dev --webpack",
-    "build": "CSS_TRANSFORMER=postcss next build",
+    "build": "CSS_TRANSFORMER=postcss next build --webpack",
     "start": "next start",
     "lint": "eslint ."
   },
