@@ -11,13 +11,6 @@ export default function InspeccionPage() {
   const [caja, setCaja] = useState(false)
   const [msg, setMsg] = useState<string | null>(null)
 
-  const toData = (file: File) =>
-    new Promise<string>((res) => {
-      const r = new FileReader()
-      r.onload = () => res(String(r.result).slice(0, 200) + '…')
-      r.readAsDataURL(file)
-    })
-
   const enviar = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (!merc || !sellos || !caja) {
