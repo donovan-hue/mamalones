@@ -1,114 +1,158 @@
 'use client'
-
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 
-export default function PerfilOperadorPage() {
-  const [nombreOperador, setNombreOperador] = useState('')
-  const [telefono, setTelefono] = useState('')
-  const [licenciaFederal, setLicenciaFederal] = useState('')
-  const [vigenciaLicencia, setVigenciaLicencia] = useState('')
-  const [experiencia, setExperiencia] = useState('')
-  const [tipoLicencia, setTipoLicencia] = useState('Licencia Federal Tipo B / E')
-  const router = useRouter()
+export default function PerfilOperador() {
+  const [seccion, setSeccion] = useState<'disponibles' | 'viaje_activo' | 'seguridad'>('disponibles')
+  const [viajeSeleccionado, setViajeSeleccionado] = useState<any>(null)
+  const [postuladoExitoso, setPostuladoExitoso] = useState(false)
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    router.push('/dashboard')
+  const handlePostularse = (viaje: any) => {
+    setViajeSeleccionado(viaje)
+    setPostuladoExitoso(true)
   }
 
   return (
-    <div className="min-h-screen bg-black text-white flex items-center justify-center p-4 py-10">
-      <div className="w-full max-w-lg bg-zinc-950 p-8 rounded-3xl border border-zinc-800 shadow-2xl">
-        <h1 className="text-2xl font-black uppercase tracking-wider text-center mb-1 text-white">
-          KRONOS-SPACE.COM
-        </h1>
-        <p className="text-[10px] tracking-[0.2em] text-zinc-400 uppercase text-center mb-6">
-          Registro Profesional de Operador
-        </p>
+    <div className="min-h-screen bg-black text-white p-4 space-y-4">
+      <header className="border-b border-zinc-800 pb-3 flex justify-between items-center">
+        <div>
+          <h1 className="text-xs font-black uppercase tracking-widest text-white">KRONOS-SPACE.COM</h1>
+          <p className="text-[9px] text-zinc-500 uppercase tracking-wider">Portal del Operador | Asignaciones y Negociación</p>
+        </div>
+        <Link href="/registro" className="text-[10px] bg-zinc-900 border border-zinc-800 px-3 py-1.5 rounded-xl font-bold hover:bg-zinc-800 transition-all">← Volver</Link>
+      </header>
 
-        <form onSubmit={handleSubmit} className="space-y-4 text-left">
-          <div>
-            <label className="block text-xs font-semibold mb-1.5 ml-3 text-zinc-400">Nombre Completo del Operador</label>
-            <input
-              type="text"
-              required
-              placeholder="Nombre y apellidos"
-              className="w-full px-5 py-3 rounded-full bg-zinc-900 border border-zinc-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-zinc-400 transition-all"
-              value={nombreOperador}
-              onChange={(e) => setNombreOperador(e.target.value)}
-            />
-          </div>
+      {/* Submenú del Operador */}
+      <div className="grid grid-cols-3 gap-2">
+        <button onClick={() => { setSeccion('disponibles'); setPostuladoExitoso(false); }} className={`py-2 px-2 rounded-xl text-[9px] font-bold uppercase tracking-wider border transition-all ${seccion === 'disponibles' && !postuladoExitoso ? 'bg-white text-black border-white' : 'bg-zinc-950 text-zinc-400 border-zinc-800'}`}>
+          📋 Publicaciones
+        </button>
+        <button onClick={() => setSeccion('viaje_activo')} className={`py-2 px-2 rounded-xl text-[9px] font-bold uppercase tracking-wider border transition-all ${seccion === 'viaje_activo' || postuladoExitoso ? 'bg-white text-black border-white' : 'bg-zinc-950 text-zinc-400 border-zinc-800'}`}>
+          🤝 Negociación y Acuerdo
+        </button>
+        <button onClick={() => setSeccion('seguridad')} className={`py-2 px-2 rounded-xl text-[9px] font-bold uppercase tracking-wider border transition-all ${seccion === 'seguridad' && !postuladoExitoso ? 'bg-white text-black border-white' : 'bg-zinc-950 text-zinc-400 border-zinc-800'}`}>
+          🛡️ Protocolos
+        </button>
+      </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold mb-1.5 ml-3 text-zinc-400">Teléfono Personal</label>
-              <input
-                type="tel"
-                required
-                placeholder="33 1234 5678"
-                className="w-full px-5 py-3 rounded-full bg-zinc-900 border border-zinc-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-zinc-400 transition-all"
-                value={telefono}
-                onChange={(e) => setTelefono(e.target.value)}
-              />
+      {/* Contenido Dinámico del Operador */}
+      <div className="bg-zinc-950 border border-zinc-800 rounded-3xl p-5 space-y-4 shadow-2xl">
+        
+        {postuladoExitoso ? (
+          <div className="space-y-4 animate-fadeIn">
+            <div className="p-3 bg-emerald-950/40 border border-emerald-500/50 rounded-2xl text-center">
+              <p className="text-xs font-bold text-emerald-400 uppercase">⚡ ¡Postulación Enviada con Éxito!</p>
+              <p className="text-[10px] text-zinc-400 mt-1">Tus datos y credenciales han sido enlazados automáticamente con la empresa solicitante.</p>
             </div>
-            <div>
-              <label className="block text-xs font-semibold mb-1.5 ml-3 text-zinc-400">Años de Experiencia</label>
-              <input
-                type="number"
-                required
-                placeholder="Ej. 8 años"
-                className="w-full px-5 py-3 rounded-full bg-zinc-900 border border-zinc-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-zinc-400 transition-all"
-                value={experiencia}
-                onChange={(e) => setExperiencia(e.target.value)}
-              />
-            </div>
-          </div>
 
-          <div>
-            <label className="block text-xs font-semibold mb-1.5 ml-3 text-zinc-400">Tipo de Licencia Federal</label>
-            <select
-              className="w-full px-5 py-3 rounded-full bg-zinc-900 border border-zinc-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-zinc-400 transition-all"
-              value={tipoLicencia}
-              onChange={(e) => setTipoLicencia(e.target.value)}
-            >
-              <option value="Licencia Federal Tipo B / E">Tipo B / E (Carga General y Materiales Peligrosos)</option>
-              <option value="Licencia Federal Tipo C">Tipo C (Camión Unitario)</option>
-              <option value="Licencia Federal Tipo A">Tipo A (Autotransporte Federal de Pasajeros)</option>
-            </select>
-          </div>
+            <div className="p-4 bg-zinc-900 rounded-2xl border border-zinc-800 space-y-3 text-xs">
+              <h2 className="text-xs font-black uppercase text-white tracking-wider border-b border-zinc-800 pb-2">Acuerdo de Carga & Itinerario</h2>
+              
+              <div className="flex justify-between">
+                <span className="text-zinc-400">Empresa Solicitante:</span>
+                <span className="font-bold text-white">Industrial del Norte S.A. de C.V.</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-zinc-400">Ruta:</span>
+                <span className="font-bold text-white">{viajeSeleccionado?.origen} ➔ {viajeSeleccionado?.destino}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-zinc-400">Fecha y Hora de Carga:</span>
+                <span className="font-bold text-emerald-400">Mañana, 08:00 AM (Bodega GDL)</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-zinc-400">Fecha y Hora de Entrega:</span>
+                <span className="font-bold text-white">14 de Agosto, 04:00 PM (CEDIS MTY)</span>
+              </div>
+              <div className="flex justify-between pt-2 border-t border-zinc-800">
+                <span className="text-zinc-400">Anticipo para Gastos (Diesel/Casetas):</span>
+                <span className="font-bold text-white">$13,500 MXN (30%)</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-zinc-400">Tarifa Total Neta a Pagar:</span>
+                <span className="font-bold text-emerald-400">{viajeSeleccionado?.tarifa}</span>
+              </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold mb-1.5 ml-3 text-zinc-400">Número de Licencia Federal</label>
-              <input
-                type="text"
-                required
-                placeholder="Folio de credencial"
-                className="w-full px-5 py-3 rounded-full bg-zinc-900 border border-zinc-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-zinc-400 transition-all uppercase"
-                value={licenciaFederal}
-                onChange={(e) => setLicenciaFederal(e.target.value)}
-              />
+              <div className="pt-2">
+                <p className="text-[10px] text-zinc-500 italic">*Mensajería cifrada activa con el dueño de la fletera y el generador de carga para validación de Carta Porte.</p>
+              </div>
             </div>
-            <div>
-              <label className="block text-xs font-semibold mb-1.5 ml-3 text-zinc-400">Vigencia de Licencia</label>
-              <input
-                type="date"
-                required
-                className="w-full px-5 py-3 rounded-full bg-zinc-900 border border-zinc-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-zinc-400 transition-all"
-                value={vigenciaLicencia}
-                onChange={(e) => setVigenciaLicencia(e.target.value)}
-              />
-            </div>
-          </div>
 
-          <button
-            type="submit"
-            className="w-full py-3.5 mt-6 bg-white text-black hover:bg-zinc-200 font-extrabold rounded-full transition-all text-sm cursor-pointer shadow-lg active:scale-[0.98]"
-          >
-            Guardar Registro y Continuar
-          </button>
-        </form>
+            <button onClick={() => setPostuladoExitoso(false)} className="w-full py-3 bg-zinc-900 border border-zinc-700 text-xs font-bold uppercase rounded-xl hover:bg-zinc-800">
+              ← Volver al Muro de Publicaciones
+            </button>
+          </div>
+        ) : (
+          <>
+            {seccion === 'disponibles' && (
+              <div className="space-y-3">
+                <h2 className="text-xs font-black uppercase text-zinc-300 tracking-wider">Muro de Cargas Publicadas</h2>
+                
+                <div className="p-3 bg-zinc-900 rounded-2xl border border-zinc-800 space-y-2 text-xs">
+                  <div className="flex justify-between items-center">
+                    <span className="font-bold text-white">Guadalajara, Jal. ➔ Monterrey, N.L.</span>
+                    <span className="text-emerald-400 font-black">$45,000 MXN</span>
+                  </div>
+                  <p className="text-[10px] text-zinc-400">Caja Seca 53' • 28 Toneladas • Anticipo de diésel inmediato.</p>
+                  <div className="pt-1">
+                    <button 
+                      onClick={() => handlePostularse({ origen: 'Guadalajara, Jal.', destino: 'Monterrey, N.L.', tarifa: '$45,000 MXN' })} 
+                      className="w-full py-2 bg-white text-black font-bold rounded-lg text-[10px] uppercase hover:bg-zinc-200 transition-all"
+                    >
+                      Aceptar Viaje y Postularse
+                    </button>
+                  </div>
+                </div>
+
+                <div className="p-3 bg-zinc-900 rounded-2xl border border-zinc-800 space-y-2 text-xs">
+                  <div className="flex justify-between items-center">
+                    <span className="font-bold text-white">Manzanillo, Col. ➔ CDMX</span>
+                    <span className="text-emerald-400 font-black">$38,000 MXN</span>
+                  </div>
+                  <p className="text-[10px] text-zinc-400">Contenedor 40ft • Pago seguro contra entrega de documento (POD).</p>
+                  <div className="pt-1">
+                    <button 
+                      onClick={() => handlePostularse({ origen: 'Manzanillo, Col.', destino: 'CDMX', tarifa: '$38,000 MXN' })} 
+                      className="w-full py-2 bg-white text-black font-bold rounded-lg text-[10px] uppercase hover:bg-zinc-200 transition-all"
+                    >
+                      Aceptar Viaje y Postularse
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {seccion === 'viaje_activo' && (
+              <div className="space-y-3">
+                <h2 className="text-xs font-black uppercase text-zinc-300 tracking-wider">Detalles de Mi Viaje En Curso</h2>
+                <div className="p-4 bg-zinc-900 rounded-2xl border border-zinc-800 space-y-2 text-xs">
+                  <p className="text-zinc-400">Selecciona una carga del muro de publicaciones y haz clic en postularte para ver el acuerdo de itinerario y tarifas aquí.</p>
+                </div>
+              </div>
+            )}
+
+            {seccion === 'seguridad' && (
+              <div className="space-y-3">
+                <h2 className="text-xs font-black uppercase text-zinc-300 tracking-wider">Protocolos de Seguridad y Beneficios</h2>
+                <div className="space-y-2 text-xs">
+                  <div className="p-3 bg-zinc-900 rounded-2xl border border-zinc-800">
+                    <p className="font-bold text-white">🛰️ GPS Satelital y Monitoreo 24/7</p>
+                    <p className="text-[10px] text-zinc-400 mt-0.5">Acompañamiento constante desde el centro de control durante todo tu trayecto.</p>
+                  </div>
+                  <div className="p-3 bg-zinc-900 rounded-2xl border border-zinc-800">
+                    <p className="font-bold text-white">🚨 Botón de Alerta Temprana</p>
+                    <p className="text-[10px] text-zinc-400 mt-0.5">Acceso directo a reporte de incidencias viales y asistencia en carretera.</p>
+                  </div>
+                  <div className="p-3 bg-zinc-900 rounded-2xl border border-zinc-800">
+                    <p className="font-bold text-white">⛽ Anticipos Garantizados</p>
+                    <p className="text-[10px] text-zinc-400 mt-0.5">Depósitos oportunos para combustible y casetas antes de arrancar.</p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+
       </div>
     </div>
   )
