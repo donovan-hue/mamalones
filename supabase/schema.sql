@@ -48,6 +48,10 @@ create table if not exists public.rastreo_ubicaciones (
   created_at timestamptz default now()
 );
 
+-- Si la tabla ya existía (proyecto viejo), agregar columnas faltantes
+alter table public.rastreo_ubicaciones add column if not exists viaje_id uuid;
+alter table public.rastreo_ubicaciones add column if not exists fuente text default 'celular';
+
 create table if not exists public.credenciales_intercambio (
   id uuid primary key default gen_random_uuid(),
   viaje_id uuid references public.viajes(id) on delete cascade,

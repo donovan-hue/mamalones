@@ -2,82 +2,68 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import AppShell from '@/components/AppShell'
 import { createClient } from '@/lib/supabase'
+import { setViajeActivo } from '@/lib/viajeActivo'
 
 export default function PublicarPage() {
   const [origen, setOrigen] = useState('')
   const [destino, setDestino] = useState('')
+  const [peso, setPeso] = useState(28)
+  const [tarifa, setTarifa] = useState(45000)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
-  const supabase = createClient()
 
   const handlePublicar = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError(null)
-
+    const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
-
     if (!user) {
-      setError('Debes iniciar sesión para publicar una carga.')
+      setError('Inicia sesión para publicar.')
       setLoading(false)
       return
     }
-
-    const { error: insertError } = await supabase.from('cargas').insert([
-      {
+    const folio = `KR-${Date.now().toString(36).toUpperCase()}`
+    const { data, error: insertError } = await supabase
+      .from('viajes')
+      .insert({
+        folio,
         solicitante_id: user.id,
         origen,
         destino,
-        estado: 'pendiente'
-      }
-    ])
+        peso_ton: peso,
+        tarifa_neta: tarifa,
+        estado: 'disponible',
+      })
+      .select('id')
+      .single()
 
     if (insertError) {
-      setError(insertError.message)
+      setError(insertError.message + ' — corre supabase/rls_operativo.sql si habla de policy.')
       setLoading(false)
-    } else {
-      router.push('/cargas')
-      router.refresh()
+      return
     }
+    if (data?.id) setViajeActivo(data.id)
+    router.push('/cargas')
   }
 
   return (
-    <div className="min-h-screen bg-black text-white p-6 max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Publicar Nueva Carga</h1>
-      {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
-      <form onSubmit={handlePublicar} className="space-y-4 bg-zinc-900 p-6 rounded-xl border border-zinc-800">
-        <div>
-          <label className="block text-sm font-medium mb-1">Origen</label>
-          <input
-            type="text"
-            required
-            placeholder="Ej. Guadalajara, JAL"
-            className="w-full p-2.5 rounded bg-zinc-800 border border-zinc-700 text-white"
-            value={origen}
-            onChange={(e) => setOrigen(e.target.value)}
-          />
+    <AppShell title="Publicar carga" subtitle="Crea un viaje real en Supabase">
+      {error && <p className="text-red-400 text-xs">{error}</p>}
+      <form onSubmit={handlePublicar} className="space-y-3 vercel-card rounded-2xl p-4">
+        <input required placeholder="Origen" value={origen} onChange={(e) => setOrigen(e.target.value)} className="w-full p-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-sm" />
+        <input required placeholder="Destino / CEDIS" value={destino} onChange={(e) => setDestino(e.target.value)} className="w-full p-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-sm" />
+        <div className="grid grid-cols-2 gap-2">
+          <input type="number" value={peso} onChange={(e) => setPeso(+e.target.value)} className="p-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-sm" />
+          <input type="number" value={tarifa} onChange={(e) => setTarifa(+e.target.value)} className="p-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-sm" />
         </div>
-        <div>
-          <label className="block text-sm font-medium mb-1">Destino</label>
-          <input
-            type="text"
-            required
-            placeholder="Ej. Monterrey, NL"
-            className="w-full p-2.5 rounded bg-zinc-800 border border-zinc-700 text-white"
-            value={destino}
-            onChange={(e) => setDestino(e.target.value)}
-          />
-        </div>
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition"
-        >
-          {loading ? 'Guardando...' : 'Publicar Carga'}
+        <button disabled={loading} className="w-full py-3 bg-white text-black rounded-xl text-xs font-black uppercase">
+          {loading ? 'Publicando…' : 'Publicar en red privada'}
         </button>
       </form>
-    </div>
+    </AppShell>
   )
 }

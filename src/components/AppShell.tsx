@@ -6,11 +6,13 @@ import PanicButton from './PanicButton'
 
 const NAV = [
   { href: '/dashboard', label: 'Panel' },
+  { href: '/cargas', label: 'Cargas' },
+  { href: '/publicar', label: 'Publicar' },
   { href: '/anticipos', label: 'Anticipos' },
-  { href: '/negociacion', label: 'Acuerdos' },
-  { href: '/rastreo', label: 'GPS privado' },
-  { href: '/billetera', label: 'Liquidación' },
-  { href: '/expediente', label: 'Expediente' },
+  { href: '/inspeccion', label: 'Pre-arranque' },
+  { href: '/rastreo', label: 'GPS' },
+  { href: '/entrega', label: 'POD' },
+  { href: '/billetera', label: 'Pago' },
 ]
 
 export default function AppShell({

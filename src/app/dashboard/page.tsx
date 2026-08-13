@@ -21,9 +21,28 @@ const MODULOS = [
   { href: '/clima', t: 'Clima y bloqueos', d: 'Alertas de cierre vial y desvíos.' },
 ]
 
+const FLUJO = [
+  { n: '1', href: '/publicar', t: 'Publicar' },
+  { n: '2', href: '/cargas', t: 'Postularse' },
+  { n: '3', href: '/contratos', t: 'Firmar' },
+  { n: '4', href: '/anticipos', t: 'Anticipo' },
+  { n: '5', href: '/inspeccion', t: 'Fotos' },
+  { n: '6', href: '/bitacora', t: 'NOM-087' },
+  { n: '7', href: '/entrega', t: 'POD' },
+  { n: '8', href: '/billetera', t: 'Liquidar' },
+]
+
 export default function Dashboard() {
   return (
     <AppShell title="Panel logístico" subtitle="Módulos Kronos — red privada">
+      <div className="flex gap-2 overflow-x-auto pb-1">
+        {FLUJO.map((f) => (
+          <Link key={f.href} href={f.href} className="shrink-0 vercel-card rounded-xl px-3 py-2 text-center min-w-[72px]">
+            <p className="text-[10px] text-zinc-500">{f.n}</p>
+            <p className="text-[11px] font-bold">{f.t}</p>
+          </Link>
+        ))}
+      </div>
       <div className="grid sm:grid-cols-2 gap-3">
         {MODULOS.map((m) => (
           <Link

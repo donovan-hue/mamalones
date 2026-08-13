@@ -1,6 +1,7 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { getViajeActivo } from '@/lib/viajeActivo'
 import AppShell from '@/components/AppShell'
 import { calcularAnticipo } from '@/lib/calculoAnticipos'
 import { createClient } from '@/lib/supabase'
@@ -12,6 +13,7 @@ export default function AnticiposPage() {
   const [casetas, setCasetas] = useState(2850)
   const [viaticos, setViaticos] = useState(850)
   const [viajeId, setViajeId] = useState('')
+  useEffect(() => setViajeId(getViajeActivo()), [])
   const [msg, setMsg] = useState<string | null>(null)
   const d = useMemo(
     () => calcularAnticipo({ km, rendimientoKmL: rend, precioDiesel: diesel, casetas, viaticosDia: viaticos }),
