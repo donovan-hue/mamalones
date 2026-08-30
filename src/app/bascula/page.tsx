@@ -1,92 +1,112 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { createClient } from '@/lib/supabase'
+import { useState } from 'react';
+import { supabase } from '@/lib/supabase';
 
 export default function BasculaPage() {
-  const [cargaId, setCargaId] = useState('')
-  const [pesoEntrada, setPesoEntrada] = useState('')
-  const [pesoSalida, setPesoSalida] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [mensaje, setMensaje] = useState<string | null>(null)
-  const supabase = createClient()
+  const [folio, setFolio] = useState('');
+  const [pesoBruto, setPesoBruto] = useState('');
+  const [pesoTara, setPesoTara] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [mensaje, setMensaje] = useState<{ tipo: 'exito' | 'error'; texto: string } | null>(null);
 
-  const handleGuardarPesaje = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setMensaje(null)
+  const registrarPesaje = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setMensaje(null);
 
-    const pEntrada = parseFloat(pesoEntrada) || 0
-    const pSalida = parseFloat(pesoSalida) || 0
-    const pesoNeto = Math.abs(pSalida - pEntrada)
+    try {
+      if (!folio.trim() || !pesoBruto || !pesoTara) {
+        throw new Error('Todos los campos son obligatorios para realizar el registro.');
+      }
 
-    const { error } = await supabase.from('bascula_registros').insert([
-      {
-        carga_id: cargaId,
-        peso_entrada: pEntrada,
-        peso_salida: pSalida,
-        peso_neto: pesoNeto,
-      },
-    ])
+      const bruto = parseFloat(pesoBruto);
+      const tara = parseFloat(pesoTara);
 
-    if (error) {
-      setMensaje(`Error: ${error.message}`)
-    } else {
-      setMensaje(`Ticket guardado con éxito. Peso neto: ${pesoNeto} kg`)
-      setCargaId('')
-      setPesoEntrada('')
-      setPesoSalida('')
+      if (isNaN(bruto) || isNaN(tara) || bruto <= tara) {
+        throw new Error('El peso bruto debe ser mayor al peso tara y contener valores numéricos válidos.');
+      }
+
+      const pesoNeto = bruto - tara;
+      setLoading(true);
+
+      const { error } = await supabase.from('bascula_registros').insert([
+        {
+          folio: folio.trim(),
+          peso_bruto: bruto,
+          peso_tara: tara,
+          peso_neto: pesoNeto,
+          created_at: new Date().toISOString(),
+        },
+      ]);
+
+      if (error) throw error;
+
+      setMensaje({ tipo: 'exito', texto: `Pesaje registrado correctamente. Neto: ${pesoNeto} kg` });
+      setFolio('');
+      setPesoBruto('');
+      setPesoTara('');
+    } catch (err: any) {
+      setMensaje({ tipo: 'error', texto: err.message || 'Ocurrió un error inesperado al guardar el registro.' });
+    } finally {
+      setLoading(false);
     }
-    setLoading(false)
-  }
+  };
 
   return (
-    <div className="min-h-screen bg-black text-white p-6 max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Registro de Báscula</h1>
-      {mensaje && <p className="mb-4 text-sm font-medium text-blue-400">{mensaje}</p>}
-      <form onSubmit={handleGuardarPesaje} className="space-y-4 bg-zinc-900 p-6 rounded-xl border border-zinc-800">
+    <div className="max-w-xl mx-auto p-6 bg-black/40 rounded-xl border border-white/10 text-white">
+      <h1 className="text-2xl font-bold mb-4 text-neon">Control de Báscula</h1>
+      
+      <form onSubmit={registrarPesaje} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium mb-1">ID del Viaje / Carga</label>
+          <label className="block text-sm font-medium mb-1">Folio de Carga</label>
           <input
             type="text"
-            required
-            placeholder="UUID del viaje"
-            className="w-full p-2.5 rounded bg-zinc-800 border border-zinc-700 text-white"
-            value={cargaId}
-            onChange={(e) => setCargaId(e.target.value)}
+            value={folio}
+            onChange={(e) => setFolio(e.target.value)}
+            className="w-full px-3 py-2 bg-neutral-900 border border-white/20 rounded-lg focus:outline-none focus:border-neon"
+            placeholder="Ej. FOL-2026-001"
           />
         </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Peso Entrada (kg)</label>
-            <input
-              type="number"
-              required
-              placeholder="0.00"
-              className="w-full p-2.5 rounded bg-zinc-800 border border-zinc-700 text-white"
-              value={pesoEntrada}
-              onChange={(e) => setPesoEntrada(e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Peso Salida (kg)</label>
-            <input
-              type="number"
-              placeholder="0.00"
-              className="w-full p-2.5 rounded bg-zinc-800 border border-zinc-700 text-white"
-              value={pesoSalida}
-              onChange={(e) => setPesoSalida(e.target.value)}
-            />
-          </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">Peso Bruto (kg)</label>
+          <input
+            type="number"
+            step="any"
+            value={pesoBruto}
+            onChange={(e) => setPesoBruto(e.target.value)}
+            className="w-full px-3 py-2 bg-neutral-900 border border-white/20 rounded-lg focus:outline-none focus:border-neon"
+            placeholder="0.00"
+          />
         </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">Peso Tara (kg)</label>
+          <input
+            type="number"
+            step="any"
+            value={pesoTara}
+            onChange={(e) => setPesoTara(e.target.value)}
+            className="w-full px-3 py-2 bg-neutral-900 border border-white/20 rounded-lg focus:outline-none focus:border-neon"
+            placeholder="0.00"
+          />
+        </div>
+
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition"
+          className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-500 font-semibold rounded-lg transition disabled:opacity-50"
         >
-          {loading ? 'Registrando...' : 'Guardar Pesaje'}
+          {loading ? 'Guardando...' : 'Registrar Pesaje'}
         </button>
       </form>
+
+      {mensaje && (
+        <div className={`mt-4 p-3 rounded-lg text-sm ${mensaje.tipo === 'exito' ? 'bg-green-900/50 text-green-200 border border-green-500' : 'bg-red-900/50 text-red-200 border border-red-500'}`}>
+          {mensaje.texto}
+        </div>
+      )}
     </div>
-  )
+  );
 }
+
