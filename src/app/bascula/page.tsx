@@ -1,92 +1,60 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import AppShell from '@/components/AppShell'
 import { createClient } from '@/lib/supabase'
+import { getViajeActivo } from '@/lib/viajeActivo'
 
 export default function BasculaPage() {
-  const [cargaId, setCargaId] = useState('')
+  const [viajeId, setViajeId] = useState('')
   const [pesoEntrada, setPesoEntrada] = useState('')
   const [pesoSalida, setPesoSalida] = useState('')
   const [loading, setLoading] = useState(false)
   const [mensaje, setMensaje] = useState<string | null>(null)
-  const supabase = createClient()
+
+  useEffect(() => setViajeId(getViajeActivo()), [])
 
   const handleGuardarPesaje = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    setMensaje(null)
-
+    const supabase = createClient()
     const pEntrada = parseFloat(pesoEntrada) || 0
     const pSalida = parseFloat(pesoSalida) || 0
     const pesoNeto = Math.abs(pSalida - pEntrada)
-
-    const { error } = await supabase.from('bascula_registros').insert([
-      {
-        carga_id: cargaId,
-        peso_entrada: pEntrada,
-        peso_salida: pSalida,
-        peso_neto: pesoNeto,
-      },
-    ])
-
+    const { error } = await supabase.from('bascula_registros').insert({
+      viaje_id: viajeId || null,
+      carga_id: viajeId || null,
+      peso_entrada: pEntrada,
+      peso_salida: pSalida,
+      peso_neto: pesoNeto,
+    })
     if (error) {
-      setMensaje(`Error: ${error.message}`)
+      await supabase.from('rendimiento_combustible').insert({
+        viaje_id: viajeId || null,
+        peso_ton: pesoNeto / 1000,
+        nota: `bascula entrada ${pEntrada} salida ${pSalida}`,
+      })
+      setMensaje(error.message.includes('schema') ? `Ticket en bitácora de rendimiento. Neto ${pesoNeto} kg. Corre extras_patio.sql para tabla dedicada.` : error.message)
     } else {
-      setMensaje(`Ticket guardado con éxito. Peso neto: ${pesoNeto} kg`)
-      setCargaId('')
-      setPesoEntrada('')
-      setPesoSalida('')
+      await supabase.from('viajes').update({ estado: 'en_bascula' }).eq('id', viajeId)
+      setMensaje(`Ticket guardado. Neto: ${pesoNeto} kg`)
     }
     setLoading(false)
   }
 
   return (
-    <div className="min-h-screen bg-black text-white p-6 max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Registro de Báscula</h1>
-      {mensaje && <p className="mb-4 text-sm font-medium text-blue-400">{mensaje}</p>}
-      <form onSubmit={handleGuardarPesaje} className="space-y-4 bg-zinc-900 p-6 rounded-xl border border-zinc-800">
-        <div>
-          <label className="block text-sm font-medium mb-1">ID del Viaje / Carga</label>
-          <input
-            type="text"
-            required
-            placeholder="UUID del viaje"
-            className="w-full p-2.5 rounded bg-zinc-800 border border-zinc-700 text-white"
-            value={cargaId}
-            onChange={(e) => setCargaId(e.target.value)}
-          />
+    <AppShell title="Báscula" subtitle="Peso de entrada / salida">
+      {mensaje && <p className="text-xs text-emerald-400">{mensaje}</p>}
+      <form onSubmit={handleGuardarPesaje} className="vercel-card rounded-3xl p-5 space-y-3 text-xs">
+        <input required value={viajeId} onChange={(e) => setViajeId(e.target.value)} placeholder="UUID viaje" className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-2.5" />
+        <div className="grid grid-cols-2 gap-2">
+          <input required type="number" value={pesoEntrada} onChange={(e) => setPesoEntrada(e.target.value)} placeholder="Entrada kg" className="bg-zinc-900 border border-zinc-800 rounded-xl p-2.5" />
+          <input type="number" value={pesoSalida} onChange={(e) => setPesoSalida(e.target.value)} placeholder="Salida kg" className="bg-zinc-900 border border-zinc-800 rounded-xl p-2.5" />
         </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Peso Entrada (kg)</label>
-            <input
-              type="number"
-              required
-              placeholder="0.00"
-              className="w-full p-2.5 rounded bg-zinc-800 border border-zinc-700 text-white"
-              value={pesoEntrada}
-              onChange={(e) => setPesoEntrada(e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Peso Salida (kg)</label>
-            <input
-              type="number"
-              placeholder="0.00"
-              className="w-full p-2.5 rounded bg-zinc-800 border border-zinc-700 text-white"
-              value={pesoSalida}
-              onChange={(e) => setPesoSalida(e.target.value)}
-            />
-          </div>
-        </div>
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition"
-        >
-          {loading ? 'Registrando...' : 'Guardar Pesaje'}
+        <button disabled={loading} className="w-full py-3 bg-white text-black font-black uppercase rounded-xl">
+          {loading ? 'Registrando…' : 'Guardar pesaje'}
         </button>
       </form>
-    </div>
+    </AppShell>
   )
 }

@@ -1,96 +1,51 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import AppShell from '@/components/AppShell'
 import { createClient } from '@/lib/supabase'
+import { getViajeActivo } from '@/lib/viajeActivo'
 
 export default function FiscalPage() {
-  const [cargaId, setCargaId] = useState('')
-  const [rfcRemitente, setRfcRemitente] = useState('')
-  const [rfcDestinatario, setRfcDestinatario] = useState('')
-  const [fraccionArancelaria, setFraccionArancelaria] = useState('')
+  const [viajeId, setViajeId] = useState('')
+  const [rfcRem, setRfcRem] = useState('')
+  const [rfcDest, setRfcDest] = useState('')
+  const [fraccion, setFraccion] = useState('')
   const [loading, setLoading] = useState(false)
   const [mensaje, setMensaje] = useState<string | null>(null)
-  const supabase = createClient()
 
-  const handleGuardarCartaPorte = async (e: React.FormEvent) => {
+  useEffect(() => setViajeId(getViajeActivo()), [])
+
+  const handle = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    setMensaje(null)
-
-    const { error } = await supabase.from('cargas').update({
-      estado: 'documentado_sat'
-    }).eq('id', cargaId)
-
-    if (error) {
-      setMensaje(`Error: ${error.message}`)
-    } else {
-      setMensaje('Datos de Carta Porte SAT vinculados correctamente.')
-      setCargaId('')
-      setRfcRemitente('')
-      setRfcDestinatario('')
-      setFraccionArancelaria('')
-    }
+    const supabase = createClient()
+    const payload = { rfc_remitente: rfcRem, rfc_destinatario: rfcDest, fraccion, at: new Date().toISOString() }
+    const { error } = await supabase.from('cartas_porte').insert({
+      viaje_id: viajeId || null,
+      ...payload,
+    })
+    await supabase.from('credenciales_intercambio').insert({
+      viaje_id: viajeId || null,
+      estado_validacion: 'carta_porte',
+      payload_carta_porte: payload,
+    })
+    await supabase.from('viajes').update({ estado: 'documentado_sat' }).eq('id', viajeId)
+    setMensaje(error ? `Carta Porte en credenciales. ${error.message}` : 'Carta Porte SAT vinculada al viaje.')
     setLoading(false)
   }
 
   return (
-    <div className="min-h-screen bg-black text-white p-6 max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Módulo Fiscal / Carta Porte SAT</h1>
-      {mensaje && <p className="mb-4 text-sm font-medium text-blue-400">{mensaje}</p>}
-      <form onSubmit={handleGuardarCartaPorte} className="space-y-4 bg-zinc-900 p-6 rounded-xl border border-zinc-800">
-        <div>
-          <label className="block text-sm font-medium mb-1">ID del Viaje / Carga</label>
-          <input
-            type="text"
-            required
-            placeholder="UUID del viaje"
-            className="w-full p-2.5 rounded bg-zinc-800 border border-zinc-700 text-white"
-            value={cargaId}
-            onChange={(e) => setCargaId(e.target.value)}
-          />
+    <AppShell title="Carta Porte SAT" subtitle="RFC y fracción arancelaria">
+      {mensaje && <p className="text-xs text-emerald-400">{mensaje}</p>}
+      <form onSubmit={handle} className="vercel-card rounded-3xl p-5 space-y-3 text-xs">
+        <input required value={viajeId} onChange={(e) => setViajeId(e.target.value)} placeholder="UUID viaje" className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-2.5" />
+        <div className="grid grid-cols-2 gap-2">
+          <input required value={rfcRem} onChange={(e) => setRfcRem(e.target.value.toUpperCase())} placeholder="RFC remitente" className="bg-zinc-900 border border-zinc-800 rounded-xl p-2.5" />
+          <input required value={rfcDest} onChange={(e) => setRfcDest(e.target.value.toUpperCase())} placeholder="RFC destinatario" className="bg-zinc-900 border border-zinc-800 rounded-xl p-2.5" />
         </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">RFC Remitente</label>
-            <input
-              type="text"
-              required
-              placeholder="XAXX010101000"
-              className="w-full p-2.5 rounded bg-zinc-800 border border-zinc-700 text-white"
-              value={rfcRemitente}
-              onChange={(e) => setRfcRemitente(e.target.value.toUpperCase())}
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">RFC Destinatario</label>
-            <input
-              type="text"
-              required
-              placeholder="XAXX010101000"
-              className="w-full p-2.5 rounded bg-zinc-800 border border-zinc-700 text-white"
-              value={rfcDestinatario}
-              onChange={(e) => setRfcDestinatario(e.target.value.toUpperCase())}
-            />
-          </div>
-        </div>
-        <div>
-          <label className="block text-sm font-medium mb-1">Clave Producto / Fracción SAT</label>
-          <input
-            type="text"
-            placeholder="Ej. 78101802"
-            className="w-full p-2.5 rounded bg-zinc-800 border border-zinc-700 text-white"
-            value={fraccionArancelaria}
-            onChange={(e) => setFraccionArancelaria(e.target.value)}
-          />
-        </div>
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition"
-        >
-          {loading ? 'Generando...' : 'Vincular Carta Porte'}
-        </button>
+        <input value={fraccion} onChange={(e) => setFraccion(e.target.value)} placeholder="Clave producto SAT" className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-2.5" />
+        <button disabled={loading} className="w-full py-3 bg-white text-black font-black uppercase rounded-xl">Vincular Carta Porte</button>
       </form>
-    </div>
+    </AppShell>
   )
 }
