@@ -15,8 +15,7 @@ interface Ubicacion {
 }
 
 export default function RastreoPage() {
-  const [viajeId, setViajeId] = useState('')
-  useEffect(() => setViajeId(getViajeActivo()), [])
+  const [viajeId, setViajeId] = useState(() => getViajeActivo())
   const [ubicaciones, setUbicaciones] = useState<Ubicacion[]>([])
   const [error, setError] = useState<string | null>(null)
   const [aviso, setAviso] = useState<string | null>(null)

@@ -1,19 +1,18 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import AppShell from '@/components/AppShell'
 import { createClient } from '@/lib/supabase'
 import { getViajeActivo } from '@/lib/viajeActivo'
 
 export default function FiscalPage() {
-  const [viajeId, setViajeId] = useState('')
+  const [viajeId, setViajeId] = useState(() => getViajeActivo())
   const [rfcRem, setRfcRem] = useState('')
   const [rfcDest, setRfcDest] = useState('')
   const [fraccion, setFraccion] = useState('')
   const [loading, setLoading] = useState(false)
   const [mensaje, setMensaje] = useState<string | null>(null)
 
-  useEffect(() => setViajeId(getViajeActivo()), [])
 
   const handle = async (e: React.FormEvent) => {
     e.preventDefault()

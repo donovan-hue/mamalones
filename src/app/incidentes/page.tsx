@@ -1,18 +1,17 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import AppShell from '@/components/AppShell'
 import { createClient } from '@/lib/supabase'
 import { getViajeActivo } from '@/lib/viajeActivo'
 
 export default function IncidentesPage() {
-  const [viajeId, setViajeId] = useState('')
+  const [viajeId, setViajeId] = useState(() => getViajeActivo())
   const [tipo, setTipo] = useState('mecanico')
   const [descripcion, setDescripcion] = useState('')
   const [loading, setLoading] = useState(false)
   const [mensaje, setMensaje] = useState<string | null>(null)
 
-  useEffect(() => setViajeId(getViajeActivo()), [])
 
   const handle = async (e: React.FormEvent) => {
     e.preventDefault()

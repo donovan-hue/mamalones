@@ -31,7 +31,11 @@ export default function PerfilEmpresa() {
     setViajes((data as Viaje[]) || [])
   }
   useEffect(() => {
-    cargar()
+    const timer = setTimeout(() => {
+      void cargar()
+    }, 0)
+
+    return () => clearTimeout(timer)
   }, [])
 
   const publicar = async () => {

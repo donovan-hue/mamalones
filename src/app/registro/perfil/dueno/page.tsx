@@ -27,7 +27,11 @@ export default function PerfilDueno() {
     setViajes((data as Viaje[]) || [])
   }
   useEffect(() => {
-    cargar()
+    const timer = setTimeout(() => {
+      void cargar()
+    }, 0)
+
+    return () => clearTimeout(timer)
   }, [])
 
   const activo = viajes.find((v) => v.estado === 'asignado' || v.estado === 'aceptado' || v.estado === 'en_transito') || viajes[0]

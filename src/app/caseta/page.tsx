@@ -1,18 +1,17 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import AppShell from '@/components/AppShell'
 import { createClient } from '@/lib/supabase'
 import { getViajeActivo } from '@/lib/viajeActivo'
 
 export default function CasetaPage() {
-  const [viajeId, setViajeId] = useState('')
+  const [viajeId, setViajeId] = useState(() => getViajeActivo())
   const [tipoEvento, setTipoEvento] = useState<'entrada' | 'salida'>('entrada')
   const [observaciones, setObservaciones] = useState('')
   const [loading, setLoading] = useState(false)
   const [mensaje, setMensaje] = useState<string | null>(null)
 
-  useEffect(() => setViajeId(getViajeActivo()), [])
 
   const handle = async (e: React.FormEvent) => {
     e.preventDefault()

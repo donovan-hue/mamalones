@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import PanicButton from './PanicButton'
 import { getViajeActivo } from '@/lib/viajeActivo'
 
@@ -28,8 +28,8 @@ export default function AppShell({
   subtitle?: string
 }) {
   const path = usePathname()
-  const [viaje, setViaje] = useState('')
-  useEffect(() => setViaje(getViajeActivo()), [path])
+  const router = useRouter()
+  const [viaje] = useState(() => getViajeActivo())
   return (
     <div className="min-h-screen bg-black text-white">
       <header className="border-b border-zinc-900 px-4 py-3 flex items-center justify-between gap-3">
@@ -45,7 +45,7 @@ export default function AppShell({
             onClick={async () => {
               const { createClient } = await import('@/lib/supabase')
               await createClient().auth.signOut()
-              location.href = '/login'
+              router.push('/login')
             }}
             className="text-[10px] uppercase text-zinc-500"
           >

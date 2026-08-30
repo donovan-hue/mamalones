@@ -1,14 +1,13 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import AppShell from '@/components/AppShell'
 import { createClient } from '@/lib/supabase'
 import { getViajeActivo } from '@/lib/viajeActivo'
 import { subirEvidencia } from '@/lib/storage'
 
 export default function InspeccionPage() {
-  const [viajeId, setViajeId] = useState('')
-  useEffect(() => setViajeId(getViajeActivo()), [])
+  const [viajeId, setViajeId] = useState(() => getViajeActivo())
   const [merc, setMerc] = useState<File | null>(null)
   const [sellos, setSellos] = useState<File | null>(null)
   const [caja, setCaja] = useState<File | null>(null)

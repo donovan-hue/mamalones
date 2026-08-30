@@ -11,8 +11,7 @@ export default function RendimientoPage() {
   const [litros, setLitros] = useState(310)
   const [km, setKm] = useState(720)
   const [desnivel, setDesnivel] = useState(890)
-  const [viajeId, setViajeId] = useState('')
-  useEffect(() => setViajeId(getViajeActivo()), [])
+  const [viajeId, setViajeId] = useState(() => getViajeActivo())
   const [msg, setMsg] = useState<string | null>(null)
   const r = useMemo(() => detectarAnomaliaCombustible(peso, litros, km, desnivel), [peso, litros, km, desnivel])
 

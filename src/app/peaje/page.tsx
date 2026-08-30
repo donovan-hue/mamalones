@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import AppShell from '@/components/AppShell'
 import { createClient } from '@/lib/supabase'
 import { getViajeActivo } from '@/lib/viajeActivo'
@@ -15,8 +15,7 @@ const RUTA_GDL_MTY = [
 ]
 
 export default function PeajePage() {
-  const [viajeId, setViajeId] = useState('')
-  useEffect(() => setViajeId(getViajeActivo()), [])
+  const [viajeId, setViajeId] = useState(() => getViajeActivo())
   const [tag, setTag] = useState('')
   const [saldo, setSaldo] = useState(2500)
   const [msg, setMsg] = useState<string | null>(null)

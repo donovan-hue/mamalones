@@ -27,7 +27,11 @@ export default function PerfilOperador() {
     setViajes((data as Viaje[]) || [])
   }
   useEffect(() => {
-    cargar()
+    const timer = setTimeout(() => {
+      void cargar()
+    }, 0)
+
+    return () => clearTimeout(timer)
   }, [])
 
   const postular = async (v: Viaje) => {

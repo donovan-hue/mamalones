@@ -12,8 +12,7 @@ export default function AnticiposPage() {
   const [diesel, setDiesel] = useState(25.8)
   const [casetas, setCasetas] = useState(2850)
   const [viaticos, setViaticos] = useState(850)
-  const [viajeId, setViajeId] = useState('')
-  useEffect(() => setViajeId(getViajeActivo()), [])
+  const [viajeId, setViajeId] = useState(() => getViajeActivo())
   const [msg, setMsg] = useState<string | null>(null)
   const d = useMemo(
     () => calcularAnticipo({ km, rendimientoKmL: rend, precioDiesel: diesel, casetas, viaticosDia: viaticos }),

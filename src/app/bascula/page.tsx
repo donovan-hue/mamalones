@@ -1,18 +1,17 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import AppShell from '@/components/AppShell'
 import { createClient } from '@/lib/supabase'
 import { getViajeActivo } from '@/lib/viajeActivo'
 
 export default function BasculaPage() {
-  const [viajeId, setViajeId] = useState('')
+  const [viajeId, setViajeId] = useState(() => getViajeActivo())
   const [pesoEntrada, setPesoEntrada] = useState('')
   const [pesoSalida, setPesoSalida] = useState('')
   const [loading, setLoading] = useState(false)
   const [mensaje, setMensaje] = useState<string | null>(null)
 
-  useEffect(() => setViajeId(getViajeActivo()), [])
 
   const handleGuardarPesaje = async (e: React.FormEvent) => {
     e.preventDefault()

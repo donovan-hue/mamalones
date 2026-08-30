@@ -1,5 +1,6 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import AppShell from '@/components/AppShell'
@@ -18,6 +19,7 @@ type Viaje = {
 }
 
 export default function CargasPage() {
+  const router = useRouter()
   const [viajes, setViajes] = useState<Viaje[]>([])
   const [err, setErr] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -88,7 +90,7 @@ export default function CargasPage() {
             <button
               onClick={() => {
                 setViajeActivo(v.id)
-                location.href = '/anticipos'
+                router.push('/anticipos')
               }}
               className="px-3 py-2 bg-zinc-800 rounded-xl text-[10px] uppercase"
             >

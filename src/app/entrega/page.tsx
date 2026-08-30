@@ -1,13 +1,13 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import AppShell from '@/components/AppShell'
 import { createClient } from '@/lib/supabase'
 import { getViajeActivo } from '@/lib/viajeActivo'
 import { subirEvidencia } from '@/lib/storage'
 
 export default function EntregaPage() {
-  const [viajeId, setViajeId] = useState('')
+  const [viajeId, setViajeId] = useState(() => getViajeActivo())
   const [receptor, setReceptor] = useState('')
   const [obs, setObs] = useState('')
   const [pod, setPod] = useState('')
@@ -15,7 +15,6 @@ export default function EntregaPage() {
   const [msg, setMsg] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
-  useEffect(() => setViajeId(getViajeActivo()), [])
 
   const handle = async (e: React.FormEvent) => {
     e.preventDefault()
