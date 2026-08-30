@@ -1,80 +1,58 @@
-"use client";
+'use client'
 
-import Link from "next/link";
-import { ArrowRight, ShieldCheck, Lock, Search, Cpu } from "lucide-react";
-import { CyberCard } from "@/components/CyberCard";
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import Logo from '@/components/Logo'
+import { createClient } from '@/lib/supabase'
 
-export default function WelcomePage() {
+export default function PortadaPage() {
+  const router = useRouter()
+  const supabase = createClient()
+
+  const handleAccesoCorporativo = async () => {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session) {
+      router.push('/dashboard')
+    } else {
+      router.push('/registro')
+    }
+  }
+
   return (
-    <div className="min-h-screen bg-black text-[#f3f3f3] p-4 max-w-md mx-auto space-y-4 pb-24 font-sans">
-      
-      {/* HEADER TIPO VERCEL */}
-      <div className="pt-6 pb-2 border-b border-[#222222] flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-6 h-6 bg-white text-black font-black text-xs flex items-center justify-center rounded">
-            ▲
-          </div>
-          <span className="text-xs font-mono font-bold tracking-wider text-white">KRONOS FLEET</span>
+    <div className="min-h-screen bg-black text-white flex flex-col justify-between p-6">
+      <header className="flex items-center justify-between max-w-5xl mx-auto w-full py-4">
+        <Logo className="h-8 w-auto" />
+        <div className="flex gap-3">
+          <Link href="/login" className="px-4 py-2 text-sm rounded bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 transition">
+            Iniciar Sesión
+          </Link>
+          <Link href="/registro" className="px-4 py-2 text-sm rounded bg-white text-black font-semibold hover:bg-zinc-200 transition">
+            Crear Cuenta
+          </Link>
         </div>
-        <span className="text-[10px] font-mono px-2 py-0.5 rounded border border-[#333333] text-[#888888] bg-[#0a0a0a]">
-          v2.4.0
-        </span>
-      </div>
+      </header>
 
-      {/* TITULO SOBRIO */}
-      <div className="space-y-1">
-        <h1 className="text-xl font-semibold tracking-tight text-white">
-          Control Logístico Autónomo
+      <main className="max-w-4xl mx-auto text-center space-y-6 my-auto">
+        <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight leading-tight">
+          Logística Autónoma
         </h1>
-        <p className="text-xs text-[#888888] leading-relaxed font-mono">
-          Telemetría en tiempo real, Bóveda Escrow y Carta Porte SAT 3.1.
+        <p className="text-zinc-400 text-lg md:text-xl max-w-2xl mx-auto">
+          Ecosistema corporativo para la optimización de flotas, trazabilidad en tiempo real y cumplimiento normativo de transporte de carga.
         </p>
-      </div>
-
-      {/* TARJETA VERCEL STYLE */}
-      <CyberCard badgeText="ESTADO DE LA RED">
-        <div className="space-y-2 text-xs font-mono">
-          <div className="flex justify-between items-center py-1 border-b border-[#1a1a1a]">
-            <span className="text-[#888888]">Protección Escrow:</span>
-            <span className="text-emerald-400 font-medium">100% ACTIVA</span>
-          </div>
-          <div className="flex justify-between items-center py-1 border-b border-[#1a1a1a]">
-            <span className="text-[#888888]">Validación SAT / SCT:</span>
-            <span className="text-white font-medium">VERIFICADA</span>
-          </div>
-          <div className="flex justify-between items-center py-1">
-            <span className="text-[#888888]">Canal Privado:</span>
-            <span className="text-white font-medium">ENCRIPTADO AES-256</span>
-          </div>
+        <div className="flex justify-center gap-4 pt-4">
+          <button
+            onClick={handleAccesoCorporativo}
+            className="px-8 py-3 bg-white text-black hover:bg-zinc-200 text-lg font-bold rounded-xl transition cursor-pointer"
+          >
+            Acceso Corporativo
+          </button>
         </div>
-      </CyberCard>
+      </main>
 
-      {/* ACCIONES PRINCIPALES */}
-      <div className="space-y-2 pt-2">
-        <Link
-          href="/cargas"
-          className="w-full bg-white hover:bg-[#eee] text-black font-semibold py-3 rounded-lg text-xs transition-all flex items-center justify-center gap-2 shadow-sm"
-        >
-          <span>Buscar Fletes Disponibles</span>
-          <ArrowRight className="w-3.5 h-3.5" />
-        </Link>
-
-        <Link
-          href="/publicar"
-          className="w-full bg-[#0a0a0a] hover:bg-[#111111] border border-[#222222] text-[#ccc] hover:text-white font-medium py-3 rounded-lg text-xs transition-all flex items-center justify-center gap-2"
-        >
-          <Cpu className="w-3.5 h-3.5 text-[#888888]" />
-          <span>Publicar Carga</span>
-        </Link>
-      </div>
-
-      {/* FOOTER DISCRETO */}
-      <div className="pt-6 text-center border-t border-[#111111]">
-        <span className="text-[10px] font-mono text-[#555555]">
-          SECURE PROTOCOL • END-TO-END ENCRYPTION
-        </span>
-      </div>
-
+      <footer className="text-center text-xs text-zinc-600 py-4 border-t border-zinc-900">
+        <a href="/dashboard" className="text-zinc-400 underline mr-3">Panel</a>
+        kronos-space.com © 2026 — Plataforma de Gestión Logística
+      </footer>
     </div>
-  );
+  )
 }

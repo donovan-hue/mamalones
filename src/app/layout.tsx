@@ -1,23 +1,21 @@
-import "./globals.css";
-import type { Metadata } from "next";
-import { Navbar } from "@/components/Navbar";
+import type { Metadata } from 'next'
+import './globals.css'
 
 export const metadata: Metadata = {
-  title: "Kronos Fleet - Dark Minimalist",
-  description: "Plataforma Logística y Telemetría de Carga",
-};
+  title: 'kronos-space.com | Gestión Logística',
+  description: 'Plataforma corporativa de gestión y trazabilidad de transporte pesado',
+}
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode
 }) {
   return (
     <html lang="es">
-      <body className="antialiased min-h-screen bg-[#0b0c0e] text-slate-100 relative">
-        <Navbar />
-        <main className="pb-20">{children}</main>
+      <body className="bg-black text-white min-h-screen antialiased">
+        <main>{children}</main>
       </body>
     </html>
-  );
+  )
 }

@@ -1,108 +1,126 @@
-"use client";
+'use client'
 
-import Link from "next/link";
-import { ArrowLeft, Lock, ShieldCheck, EyeOff } from "lucide-react";
-import { CyberCard } from "@/components/CyberCard";
+import { useEffect, useRef, useState } from 'react'
+import { getViajeActivo } from '@/lib/viajeActivo'
+import AppShell from '@/components/AppShell'
+import { createClient } from '@/lib/supabase'
+import { puedeVerTelemetria, rolSobreViaje } from '@/lib/privacidad'
 
-export default function TelemetriaGPSSistema() {
+interface Ubicacion {
+  id: string
+  latitud: number
+  longitud: number
+  created_at: string
+  fuente?: string
+}
+
+export default function RastreoPage() {
+  const [viajeId, setViajeId] = useState('')
+  useEffect(() => setViajeId(getViajeActivo()), [])
+  const [ubicaciones, setUbicaciones] = useState<Ubicacion[]>([])
+  const [error, setError] = useState<string | null>(null)
+  const [aviso, setAviso] = useState<string | null>(null)
+  const [emitiendo, setEmitiendo] = useState(false)
+  const [ultimo, setUltimo] = useState<string | null>(null)
+  const watchRef = useRef<number | null>(null)
+  const supabase = createClient()
+
+  const consultar = async () => {
+    setError(null)
+    setAviso(null)
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      setError('Inicia sesión.')
+      return
+    }
+    const { data: viaje, error: vErr } = await supabase.from('viajes').select('*').eq('id', viajeId).maybeSingle()
+    if (vErr || !viaje) {
+      setError(vErr?.message || 'Viaje no encontrado o no eres parte.')
+      return
+    }
+    const rol = rolSobreViaje(user.id, viaje)
+    if (!puedeVerTelemetria(rol)) {
+      setAviso('Solo solicitante y dueño ven el historial. Tú puedes emitir si eres operador.')
+    } else {
+      const { data, error: fetchError } = await supabase
+        .from('rastreo_ubicaciones')
+        .select('*')
+        .or(`viaje_id.eq.${viajeId},carga_id.eq.${viajeId}`)
+        .order('created_at', { ascending: false })
+      if (fetchError) setError(fetchError.message)
+      else setUbicaciones(data || [])
+    }
+  }
+
+  const emitirPunto = async (lat: number, lon: number) => {
+    const { error: e } = await supabase.from('rastreo_ubicaciones').insert({
+      viaje_id: viajeId || null,
+      carga_id: viajeId || null,
+      latitud: lat,
+      longitud: lon,
+      fuente: 'celular',
+    })
+    if (e) setError(e.message)
+    else setUltimo(`${lat.toFixed(5)}, ${lon.toFixed(5)} · ${new Date().toLocaleTimeString()}`)
+  }
+
+  const toggleEmision = () => {
+    if (emitiendo) {
+      if (watchRef.current != null) navigator.geolocation.clearWatch(watchRef.current)
+      watchRef.current = null
+      setEmitiendo(false)
+      return
+    }
+    if (!navigator.geolocation) {
+      setError('Este dispositivo no tiene GPS.')
+      return
+    }
+    setEmitiendo(true)
+    watchRef.current = navigator.geolocation.watchPosition(
+      (pos) => emitirPunto(pos.coords.latitude, pos.coords.longitude),
+      (err) => setError(err.message),
+      { enableHighAccuracy: true, maximumAge: 8000, timeout: 15000 }
+    )
+  }
+
+  useEffect(() => () => {
+    if (watchRef.current != null) navigator.geolocation.clearWatch(watchRef.current)
+  }, [])
+
   return (
-    <div className="min-h-screen text-slate-100 p-4 max-w-md mx-auto space-y-4 pb-24 font-sans">
-      
-      {/* HEADER */}
-      <div className="flex items-center gap-3 border-b border-slate-800 pb-3">
-        <Link href="/" className="p-2 bg-[#12151c] border border-slate-800 rounded-xl text-slate-300">
-          <ArrowLeft className="w-5 h-5" />
-        </Link>
-        <div>
-          <span className="text-[10px] font-mono text-emerald-400 uppercase tracking-widest flex items-center gap-1 font-bold">
-            <Lock className="w-3 h-3" /> CANAL PRIVADO RESTRINGIDO
-          </span>
-          <h1 className="text-lg font-bold text-white">RASTREO GPS EN VIVO</h1>
-        </div>
+    <AppShell title="Telemetría privada" subtitle="Emitir + consultar">
+      <div className="rounded-2xl border border-emerald-900/50 bg-emerald-950/20 p-3 text-[11px] text-emerald-300">
+        El operador emite desde el celular. El historial solo lo ven solicitante y dueño.
       </div>
-
-      {/* AVISO DE PRIVACIDAD OPERATIVA */}
-      <div className="bg-[#12151c] p-3 rounded-xl border border-emerald-500/30 flex items-center gap-2.5 text-xs">
-        <EyeOff className="w-5 h-5 text-emerald-400 shrink-0" />
-        <div className="text-[11px] text-slate-300 font-mono">
-          <strong className="text-white block font-bold">ACCESO PRIVADO RESTRINGIDO</strong>
-          Esta telemetría solo es visible para la fletera asignada y el solicitante de la carga. Ningún usuario externo tiene acceso a este mapa ni a las coordenadas del chofer.
-        </div>
+      <div className="flex gap-2">
+        <input
+          placeholder="UUID del viaje"
+          className="flex-1 p-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-sm"
+          value={viajeId}
+          onChange={(e) => setViajeId(e.target.value)}
+        />
+        <button onClick={consultar} className="px-4 py-2 bg-zinc-800 rounded-xl text-xs font-bold">Abrir</button>
       </div>
-
-      {/* MAPA VECTORIAL DE VÍAS Y RUTAS */}
-      <CyberCard badgeText="MAPA DE RUTA PRIVADO // TELEMETRÍA ENCRIPTADA">
-        <div className="relative w-full h-56 bg-[#07080a] rounded-xl border border-slate-800 overflow-hidden p-3 font-mono">
-          <div className="absolute inset-0 opacity-15 bg-[radial-gradient(#334155_1px,transparent_1px)] [background-size:12px_12px]" />
-
-          <svg className="absolute inset-0 w-full h-full stroke-slate-700 fill-none stroke-2" viewBox="0 0 300 200">
-            <path d="M 30 170 Q 80 140 150 110 T 270 30" strokeDasharray="4 4" className="stroke-slate-600" />
-            <path d="M 30 170 L 90 120 L 170 90 L 270 30" className="stroke-emerald-500 stroke-[3]" />
-            <circle cx="30" cy="170" r="5" className="fill-slate-100" />
-            <circle cx="90" cy="120" r="6" className="fill-amber-500 animate-ping" />
-            <circle cx="90" cy="120" r="4" className="fill-amber-400" />
-            <circle cx="170" cy="90" r="5" className="fill-rose-500" />
-            <circle cx="270" cy="30" r="5" className="fill-emerald-400" />
-          </svg>
-
-          <div className="absolute top-2 left-2 bg-[#12151c]/90 px-2 py-1 rounded border border-slate-800 text-[9px] text-slate-300">
-            ORIGEN: GDL
-          </div>
-          <div className="absolute bottom-2 right-2 bg-[#12151c]/90 px-2 py-1 rounded border border-slate-800 text-[9px] text-emerald-400 font-bold">
-            DESTINO: CULIACÁN
-          </div>
-          <div className="absolute top-1/2 left-1/3 bg-amber-950/80 text-amber-300 border border-amber-800 px-1.5 py-0.5 rounded text-[8px]">
-            PARADA: 42 MIN
-          </div>
-        </div>
-      </CyberCard>
-
-      {/* METRICAS DE TELEMETRIA */}
-      <div className="grid grid-cols-2 gap-2">
-        <CyberCard badgeText="VELOCIDAD ACTUAL">
-          <div className="text-center">
-            <span className="text-2xl font-black font-mono text-white">86 <span className="text-xs font-sans text-slate-400">km/h</span></span>
-            <span className="text-[10px] text-emerald-400 font-mono block mt-1">Autopista Cuota</span>
-          </div>
-        </CyberCard>
-
-        <CyberCard badgeText="CANAL DE TELEMETRÍA">
-          <div className="text-center">
-            <span className="text-2xl font-black font-mono text-emerald-400">PRIVADO</span>
-            <span className="text-[10px] text-slate-400 font-mono block mt-1">Encriptación AES-256</span>
-          </div>
-        </CyberCard>
-      </div>
-
-      {/* REGISTRO DE EVENTOS */}
-      <CyberCard badgeText="REGISTRO DE PARADAS PRIVADAS">
-        <div className="space-y-2 text-xs font-mono">
-          <div className="bg-[#0b0c0e] p-2.5 rounded-lg border border-slate-800 space-y-2">
-            <div className="flex justify-between items-center border-b border-slate-800/80 pb-1.5">
-              <div>
-                <span className="text-slate-200 font-bold block">Caseta Tepic (Parada)</span>
-                <span className="text-[10px] text-slate-500">Km 142 • Libramiento</span>
-              </div>
-              <div className="text-right">
-                <span className="text-amber-400 font-bold block">42 MIN</span>
-                <span className="text-[9px] text-slate-500">Carga Diésel</span>
-              </div>
+      <button
+        onClick={toggleEmision}
+        className={`w-full py-3 rounded-xl text-xs font-black uppercase ${emitiendo ? 'bg-red-600' : 'bg-white text-black'}`}
+      >
+        {emitiendo ? 'Detener emisión GPS' : 'Emitir mi posición (operador)'}
+      </button>
+      {ultimo && <p className="text-[11px] font-mono text-emerald-400">Último envío: {ultimo}</p>}
+      {error && <p className="text-red-400 text-xs">{error}</p>}
+      {aviso && <p className="text-amber-300 text-xs">{aviso}</p>}
+      <div className="space-y-2">
+        {ubicaciones.map((loc) => (
+          <div key={loc.id} className="p-3 bg-zinc-950 border border-zinc-800 rounded-xl text-xs flex justify-between">
+            <div>
+              <p className="font-mono text-emerald-400">{loc.latitud.toFixed(5)}, {loc.longitud.toFixed(5)}</p>
+              <p className="text-zinc-500">{new Date(loc.created_at).toLocaleString()}</p>
             </div>
-
-            <div className="flex justify-between items-center">
-              <div>
-                <span className="text-slate-200 font-bold block">Revisión de Báscula SCT</span>
-                <span className="text-[10px] text-slate-500">Km 88 • Inspección</span>
-              </div>
-              <div className="text-right">
-                <span className="text-slate-300 font-bold block">15 MIN</span>
-                <span className="text-[9px] text-emerald-400">Peso Aprobado</span>
-              </div>
-            </div>
+            <span className="text-[10px] uppercase text-zinc-400">{loc.fuente || 'celular'}</span>
           </div>
-        </div>
-      </CyberCard>
-
-    </div>
-  );
+        ))}
+      </div>
+    </AppShell>
+  )
 }

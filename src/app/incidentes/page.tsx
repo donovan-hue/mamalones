@@ -1,54 +1,48 @@
-"use client";
+'use client'
 
-import { useState } from "react";
-import Link from "next/link";
-import { ArrowLeft, AlertTriangle, WifiOff, Camera, Clock, Check } from "lucide-react";
-import { CyberCard } from "@/components/CyberCard";
+import { useEffect, useState } from 'react'
+import AppShell from '@/components/AppShell'
+import { createClient } from '@/lib/supabase'
+import { getViajeActivo } from '@/lib/viajeActivo'
 
 export default function IncidentesPage() {
-  const [reportado, setReportado] = useState(false);
+  const [viajeId, setViajeId] = useState('')
+  const [tipo, setTipo] = useState('mecanico')
+  const [descripcion, setDescripcion] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [mensaje, setMensaje] = useState<string | null>(null)
+
+  useEffect(() => setViajeId(getViajeActivo()), [])
+
+  const handle = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    const { error } = await supabase.from('alertas_emergencia').insert({
+      viaje_id: viajeId || null,
+      operador_id: user?.id,
+      tipo,
+      nota: descripcion,
+    })
+    setMensaje(error ? error.message : 'Incidente en centro de control.')
+    setLoading(false)
+  }
 
   return (
-    <div className="min-h-screen text-slate-100 p-4 max-w-md mx-auto space-y-4 pb-20 font-sans">
-      <div className="flex items-center gap-3 border-b border-slate-800 pb-3">
-        <Link href="/cargas" className="p-2 bg-slate-900 border border-slate-700/80 rounded-xl text-slate-300 hover:text-white transition-colors">
-          <ArrowLeft className="w-5 h-5" />
-        </Link>
-        <div>
-          <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest">SOPORTE EN RUTA</span>
-          <h1 className="text-lg font-black tracking-wider text-slate-100 italic">INCIDENTES & ESTADÍAS</h1>
-        </div>
-      </div>
-
-      <CyberCard badgeText="MODO SIN COBERTURA">
-        <div className="flex items-center gap-3 p-3 bg-[#0a0b0d] border border-slate-800 rounded-xl text-xs font-mono">
-          <WifiOff className="w-5 h-5 text-amber-400 shrink-0" />
-          <div>
-            <p className="text-slate-200 font-bold">Sincronización Offline Activa</p>
-            <p className="text-[10px] text-slate-500">Los reportes se guardarán localmente y se enviarán al reconectar.</p>
-          </div>
-        </div>
-      </CyberCard>
-
-      <CyberCard badgeText="REPORTE DE ESTADÍAS">
-        <div className="space-y-3">
-          <div className="space-y-1">
-            <label className="text-[10px] font-mono font-bold text-slate-400 uppercase">Horas de Retraso en Rampa</label>
-            <input
-              type="number"
-              placeholder="Ej. 3 hrs"
-              className="w-full bg-[#0a0b0d] border border-slate-800 rounded-xl p-2.5 text-xs font-mono text-slate-100 outline-none"
-            />
-          </div>
-
-          <button
-            onClick={() => setReportado(true)}
-            className="w-full bg-gradient-to-r from-slate-200 via-slate-300 to-slate-400 text-slate-950 font-black py-3 rounded-xl text-xs tracking-wider uppercase transition-all shadow-xl border border-white/40 active:scale-98"
-          >
-            {reportado ? "¡Estadía Registrada!" : "Registrar Cobro de Estadía"}
-          </button>
-        </div>
-      </CyberCard>
-    </div>
-  );
+    <AppShell title="Incidentes en ruta" subtitle="Alerta al centro de control">
+      {mensaje && <p className="text-xs text-emerald-400">{mensaje}</p>}
+      <form onSubmit={handle} className="vercel-card rounded-3xl p-5 space-y-3 text-xs">
+        <input value={viajeId} onChange={(e) => setViajeId(e.target.value)} placeholder="UUID viaje" className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-2.5" />
+        <select value={tipo} onChange={(e) => setTipo(e.target.value)} className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-2.5">
+          <option value="mecanico">Falla mecánica</option>
+          <option value="accidente">Siniestro</option>
+          <option value="reten">Retén / bloqueo</option>
+          <option value="retraso">Retraso</option>
+        </select>
+        <textarea required value={descripcion} onChange={(e) => setDescripcion(e.target.value)} placeholder="Qué ocurrió y dónde" className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-2.5" />
+        <button disabled={loading} className="w-full py-3 bg-red-600 text-white font-black uppercase rounded-xl">Enviar alerta</button>
+      </form>
+    </AppShell>
+  )
 }

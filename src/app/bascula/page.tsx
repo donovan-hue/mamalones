@@ -1,86 +1,60 @@
-"use client";
+'use client'
 
-import { useState } from "react";
-import Link from "next/link";
-import { ArrowLeft, Scale, Fuel, ShieldAlert, Calculator } from "lucide-react";
-import { CyberCard } from "@/components/CyberCard";
+import { useEffect, useState } from 'react'
+import AppShell from '@/components/AppShell'
+import { createClient } from '@/lib/supabase'
+import { getViajeActivo } from '@/lib/viajeActivo'
 
 export default function BasculaPage() {
-  const [pesoBruto, setPesoBruto] = useState<number | "">("");
-  const [pesoTara, setPesoTara] = useState<number | "">("");
-  const [litrosDiesel, setLitrosDiesel] = useState<number | "">("");
+  const [viajeId, setViajeId] = useState('')
+  const [pesoEntrada, setPesoEntrada] = useState('')
+  const [pesoSalida, setPesoSalida] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [mensaje, setMensaje] = useState<string | null>(null)
 
-  const pesoNeto = typeof pesoBruto === "number" && typeof pesoTara === "number" ? pesoBruto - pesoTara : 0;
-  const mermaKg = typeof litrosDiesel === "number" ? (litrosDiesel * 0.835).toFixed(1) : "0.0";
+  useEffect(() => setViajeId(getViajeActivo()), [])
+
+  const handleGuardarPesaje = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    const supabase = createClient()
+    const pEntrada = parseFloat(pesoEntrada) || 0
+    const pSalida = parseFloat(pesoSalida) || 0
+    const pesoNeto = Math.abs(pSalida - pEntrada)
+    const { error } = await supabase.from('bascula_registros').insert({
+      viaje_id: viajeId || null,
+      carga_id: viajeId || null,
+      peso_entrada: pEntrada,
+      peso_salida: pSalida,
+      peso_neto: pesoNeto,
+    })
+    if (error) {
+      await supabase.from('rendimiento_combustible').insert({
+        viaje_id: viajeId || null,
+        peso_ton: pesoNeto / 1000,
+        nota: `bascula entrada ${pEntrada} salida ${pSalida}`,
+      })
+      setMensaje(error.message.includes('schema') ? `Ticket en bitácora de rendimiento. Neto ${pesoNeto} kg. Corre extras_patio.sql para tabla dedicada.` : error.message)
+    } else {
+      await supabase.from('viajes').update({ estado: 'en_bascula' }).eq('id', viajeId)
+      setMensaje(`Ticket guardado. Neto: ${pesoNeto} kg`)
+    }
+    setLoading(false)
+  }
 
   return (
-    <div className="min-h-screen text-slate-100 p-4 max-w-md mx-auto space-y-4 pb-20 font-sans">
-      <div className="flex items-center gap-3 border-b border-slate-800 pb-3">
-        <Link href="/cargas" className="p-2 bg-slate-900 border border-slate-700/80 rounded-xl text-slate-300 hover:text-white transition-colors">
-          <ArrowLeft className="w-5 h-5" />
-        </Link>
-        <div>
-          <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest">REGISTRO TÉCNICO</span>
-          <h1 className="text-lg font-black tracking-wider text-slate-100 italic">BÁSCULA & DIÉSEL</h1>
+    <AppShell title="Báscula" subtitle="Peso de entrada / salida">
+      {mensaje && <p className="text-xs text-emerald-400">{mensaje}</p>}
+      <form onSubmit={handleGuardarPesaje} className="vercel-card rounded-3xl p-5 space-y-3 text-xs">
+        <input required value={viajeId} onChange={(e) => setViajeId(e.target.value)} placeholder="UUID viaje" className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-2.5" />
+        <div className="grid grid-cols-2 gap-2">
+          <input required type="number" value={pesoEntrada} onChange={(e) => setPesoEntrada(e.target.value)} placeholder="Entrada kg" className="bg-zinc-900 border border-zinc-800 rounded-xl p-2.5" />
+          <input type="number" value={pesoSalida} onChange={(e) => setPesoSalida(e.target.value)} placeholder="Salida kg" className="bg-zinc-900 border border-zinc-800 rounded-xl p-2.5" />
         </div>
-      </div>
-
-      <CyberCard badgeText="PESAJE MÓVIL">
-        <div className="space-y-3">
-          <div className="grid grid-cols-2 gap-2">
-            <div className="space-y-1">
-              <label className="text-[10px] font-mono font-bold text-slate-400 uppercase">Peso Bruto (KG)</label>
-              <input
-                type="number"
-                placeholder="38000"
-                value={pesoBruto}
-                onChange={(e) => setPesoBruto(e.target.value === "" ? "" : Number(e.target.value))}
-                className="w-full bg-[#0a0b0d] border border-slate-800 rounded-xl p-2.5 text-xs font-mono text-slate-100 outline-none"
-              />
-            </div>
-            <div className="space-y-1">
-              <label className="text-[10px] font-mono font-bold text-slate-400 uppercase">Peso Tara (KG)</label>
-              <input
-                type="number"
-                placeholder="10000"
-                value={pesoTara}
-                onChange={(e) => setPesoTara(e.target.value === "" ? "" : Number(e.target.value))}
-                className="w-full bg-[#0a0b0d] border border-slate-800 rounded-xl p-2.5 text-xs font-mono text-slate-100 outline-none"
-              />
-            </div>
-          </div>
-
-          <div className="bg-[#0a0b0d] p-3 rounded-xl border border-slate-800 text-center">
-            <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest">PESO NETO CARGADO</span>
-            <div className="text-2xl font-black font-mono text-slate-100 mt-0.5">
-              {pesoNeto.toLocaleString()} <span className="text-xs text-slate-400 font-normal">KG</span>
-            </div>
-          </div>
-        </div>
-      </CyberCard>
-
-      <CyberCard badgeText="CALCULADORA MERMA DIÉSEL">
-        <div className="space-y-3">
-          <div className="space-y-1">
-            <label className="text-[10px] font-mono font-bold text-slate-400 uppercase">Litros Recargados en Ruta</label>
-            <div className="relative">
-              <Fuel className="absolute left-3 top-3 w-4 h-4 text-slate-500" />
-              <input
-                type="number"
-                placeholder="400"
-                value={litrosDiesel}
-                onChange={(e) => setLitrosDiesel(e.target.value === "" ? "" : Number(e.target.value))}
-                className="w-full bg-[#0a0b0d] border border-slate-800 rounded-xl p-2.5 pl-9 text-xs font-mono text-slate-100 outline-none"
-              />
-            </div>
-          </div>
-
-          <div className="bg-[#0a0b0d] p-3 rounded-xl border border-slate-800/80 flex items-center justify-between text-xs font-mono">
-            <span className="text-slate-400">Descuento Merma (0.835 kg/L):</span>
-            <span className="text-slate-200 font-black">{mermaKg} KG</span>
-          </div>
-        </div>
-      </CyberCard>
-    </div>
-  );
+        <button disabled={loading} className="w-full py-3 bg-white text-black font-black uppercase rounded-xl">
+          {loading ? 'Registrando…' : 'Guardar pesaje'}
+        </button>
+      </form>
+    </AppShell>
+  )
 }
