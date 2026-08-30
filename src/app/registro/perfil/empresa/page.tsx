@@ -46,9 +46,9 @@ export default function PerfilEmpresa() {
                 <div>
                   <label className="text-[10px] text-zinc-500 uppercase font-bold">Tipo de Unidad</label>
                   <select className="w-full mt-1 bg-zinc-900 border border-zinc-800 rounded-xl p-2.5 text-white text-xs">
-                    <option>Tráiler 53' (Caja Seca)</option>
+                    <option>Tráiler 53&apos; (Caja Seca)</option>
                     <option>Full / Doble Semirremolque</option>
-                    <option>Plataforma 40'</option>
+                    <option>Plataforma 40&apos;</option>
                     <option>Torton / Redilas</option>
                   </select>
                 </div>

@@ -93,7 +93,7 @@ export default function PerfilOperador() {
                     <span className="font-bold text-white">Guadalajara, Jal. ➔ Monterrey, N.L.</span>
                     <span className="text-emerald-400 font-black">$45,000 MXN</span>
                   </div>
-                  <p className="text-[10px] text-zinc-400">Caja Seca 53' • 28 Toneladas • Anticipo de diésel inmediato.</p>
+                  <p className="text-[10px] text-zinc-400">Caja Seca 53&apos; • 28 Toneladas • Anticipo de diésel inmediato.</p>
                   <div className="pt-1">
                     <button 
                       onClick={() => handlePostularse({ origen: 'Guadalajara, Jal.', destino: 'Monterrey, N.L.', tarifa: '$45,000 MXN' })} 

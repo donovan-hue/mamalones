@@ -62,7 +62,7 @@ export default function PerfilDueno() {
             <h2 className="text-xs font-black uppercase text-zinc-300 tracking-wider">Bolsa de Cargas y Propuestas de Tarifa</h2>
             <div className="p-3 bg-zinc-900 rounded-2xl border border-zinc-800 space-y-2 text-xs">
               <div className="flex justify-between items-center">
-                <span className="font-bold text-white">GDL ➔ MTY (Caja Seca 53')</span>
+                <span className="font-bold text-white">GDL ➔ MTY (Caja Seca 53&apos;)</span>
                 <span className="text-emerald-400 font-black">$45,000 MXN</span>
               </div>
               <p className="text-[10px] text-zinc-400">Generador: Empresa Industrial del Norte. Pago de anticipo del 30% inmediato.</p>

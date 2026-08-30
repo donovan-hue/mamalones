@@ -60,7 +60,8 @@ export default function TableroCargasProduccion() {
   setLoading(false);
   return;
 }
-  // SOLO SE MUESTRAN CARGAS CON ESTATUS 'disponible'try {
+  // SOLO SE MUESTRAN CARGAS CON ESTATUS 'disponible'
+      try {
         setLoading(true);
 
         // SOLO SE MUESTRAN CARGAS CON ESTATUS 'disponible'
