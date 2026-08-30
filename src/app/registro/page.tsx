@@ -1,116 +1,133 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { createClient } from '@/lib/supabase'
+import { useState } from "react";
+import Link from "next/link";
+import { ArrowLeft, User, Shield, Truck, FileText, CheckCircle } from "lucide-react";
+import { CyberCard } from "@/components/CyberCard";
+import { createClient } from "@supabase/supabase-js";
 
-export default function RegistroPage() {
-  const [nombre, setNombre] = useState('')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [mensaje, setMensaje] = useState<string | null>(null)
-  const router = useRouter()
-  const supabase = createClient()
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-  const handleRegistro = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setMensaje(null)
+export default function RegistroChoferProduccion() {
+  const [nombre, setNombre] = useState("");
+  const [licencia, setLicencia] = useState("");
+  const [placas, setPlacas] = useState("");
+  const [seguro, setSeguro] = useState("");
+  const [loading, setLoading] = useState(false);
 
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          nombre_completo: nombre,
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const { error } = await supabase.from("expedientes").insert([
+        {
+          nombre_operador: nombre,
+          licencia_federal: licencia,
+          placas_unidad: placas,
+          poliza_seguro: seguro,
+          estatus_verificacion: "validado",
+          created_at: new Date().toISOString(),
         },
-      },
-    })
+      ]);
 
-    if (error) {
-      setMensaje(`Error: ${error.message}`)
-      setLoading(false)
-    } else {
-      setMensaje('Cuenta creada con éxito. Entrando...')
-      router.push('/registro/onboarding')
+      if (error) throw error;
+      alert("¡Expediente de unidad registrado y verificado correctamente!");
+      window.location.href = "/cargas";
+    } catch (err: any) {
+      alert("Error en registro: " + (err.message || "Verifica tu conexión"));
+    } finally {
+      setLoading(false);
     }
-  }
+  };
 
   return (
-    <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-zinc-950 p-8 rounded-3xl border border-zinc-800 shadow-2xl text-center">
-        <h1 className="text-3xl font-black tracking-wider text-white uppercase mb-1">
-          kronos-space.com
-        </h1>
-        <p className="text-xs font-semibold tracking-widest text-zinc-400 uppercase mb-8">
-          logística autónoma
-        </p>
+    <div className="min-h-screen text-slate-100 p-4 max-w-md mx-auto space-y-4 pb-20 font-sans">
+      <div className="flex items-center gap-3 border-b border-slate-800 pb-3">
+        <Link href="/" className="p-2 bg-slate-900 border border-slate-700/80 rounded-xl text-slate-300 hover:text-white transition-colors">
+          <ArrowLeft className="w-5 h-5" />
+        </Link>
+        <div>
+          <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest">EXPEDIENTE</span>
+          <h1 className="text-lg font-black tracking-wider text-slate-100 italic">ALTA DE UNIDAD</h1>
+        </div>
+      </div>
 
-        <h2 className="text-lg font-bold text-left mb-4 text-zinc-200">
-          Registro de Usuario
-        </h2>
-        
-        {mensaje && (
-          <p className="mb-4 text-xs font-semibold text-center text-zinc-300 bg-zinc-900 py-2.5 px-4 rounded-full border border-zinc-800">
-            {mensaje}
-          </p>
-        )}
-
-        <form onSubmit={handleRegistro} className="space-y-4 text-left">
-          <div>
-            <label className="block text-xs font-semibold mb-1.5 ml-3 text-zinc-400">Nombre Completo</label>
-            <input
-              type="text"
-              required
-              placeholder="Tu nombre o empresa"
-              className="w-full px-5 py-3 rounded-full bg-zinc-900 border border-zinc-700 text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-white transition-all text-sm"
-              value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
-            />
+      <CyberCard badgeText="FICHA TÉCNICA">
+        <form onSubmit={handleRegister} className="space-y-3">
+          <div className="space-y-1">
+            <label className="text-[10px] font-mono font-bold text-slate-400 uppercase">Nombre Completo Operador</label>
+            <div className="relative">
+              <User className="absolute left-3 top-3 w-4 h-4 text-slate-500" />
+              <input
+                type="text"
+                required
+                placeholder="Nombre del Chofer"
+                value={nombre}
+                onChange={(e) => setNombre(e.target.value)}
+                className="w-full bg-[#0a0b0d] border border-slate-800 focus:border-slate-400 rounded-xl p-2.5 pl-9 text-xs text-slate-100 outline-none font-mono"
+              />
+            </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold mb-1.5 ml-3 text-zinc-400">Correo Electrónico</label>
-            <input
-              type="email"
-              required
-              placeholder="correo@ejemplo.com"
-              className="w-full px-5 py-3 rounded-full bg-zinc-900 border border-zinc-700 text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-white transition-all text-sm"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
+          <div className="space-y-1">
+            <label className="text-[10px] font-mono font-bold text-slate-400 uppercase">Licencia Federal Folio</label>
+            <div className="relative">
+              <FileText className="absolute left-3 top-3 w-4 h-4 text-slate-500" />
+              <input
+                type="text"
+                required
+                placeholder="FED-8839201"
+                value={licencia}
+                onChange={(e) => setLicencia(e.target.value)}
+                className="w-full bg-[#0a0b0d] border border-slate-800 focus:border-slate-400 rounded-xl p-2.5 pl-9 text-xs text-slate-100 outline-none font-mono"
+              />
+            </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold mb-1.5 ml-3 text-zinc-400">Contraseña</label>
-            <input
-              type="password"
-              required
-              placeholder="••••••••"
-              className="w-full px-5 py-3 rounded-full bg-zinc-900 border border-zinc-700 text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-white transition-all text-sm"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-1">
+              <label className="text-[10px] font-mono font-bold text-slate-400 uppercase">Placas Unidad</label>
+              <div className="relative">
+                <Truck className="absolute left-3 top-3 w-4 h-4 text-slate-500" />
+                <input
+                  type="text"
+                  required
+                  placeholder="88-AA-1B"
+                  value={placas}
+                  onChange={(e) => setPlacas(e.target.value)}
+                  className="w-full bg-[#0a0b0d] border border-slate-800 focus:border-slate-400 rounded-xl p-2.5 pl-9 text-xs text-slate-100 outline-none font-mono uppercase"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[10px] font-mono font-bold text-slate-400 uppercase">Póliza Seguro</label>
+              <div className="relative">
+                <Shield className="absolute left-3 top-3 w-4 h-4 text-slate-500" />
+                <input
+                  type="text"
+                  required
+                  placeholder="POL-991823"
+                  value={seguro}
+                  onChange={(e) => setSeguro(e.target.value)}
+                  className="w-full bg-[#0a0b0d] border border-slate-800 focus:border-slate-400 rounded-xl p-2.5 pl-9 text-xs text-slate-100 outline-none font-mono uppercase"
+                />
+              </div>
+            </div>
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3.5 mt-2 bg-white text-black hover:bg-zinc-200 font-extrabold rounded-full transition-all text-sm cursor-pointer shadow-lg active:scale-[0.98]"
+            className="w-full bg-gradient-to-r from-slate-200 via-slate-300 to-slate-400 text-slate-950 font-black py-3 rounded-xl text-xs tracking-wider uppercase transition-all shadow-xl border border-white/40 disabled:opacity-50 mt-2"
           >
-            {loading ? 'Registrando...' : 'Registrarse'}
+            {loading ? "Validando Ficha..." : "Guardar & Activar Expediente"}
           </button>
         </form>
-
-        <p className="mt-6 text-center text-xs text-zinc-500">
-          ¿Ya tienes cuenta?{' '}
-          <Link href="/login" className="text-white underline font-semibold hover:text-zinc-300">
-            Iniciar Sesión
-          </Link>
-        </p>
-      </div>
+      </CyberCard>
     </div>
-  )
+  );
 }
