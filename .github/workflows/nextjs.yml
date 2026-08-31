@@ -2,6 +2,9 @@
 # Aquí solo comprobamos que compile. Para publicarla usa Vercel.
 name: Build
 
+permissions:
+  contents: read
+
 on:
   push:
     branches: ["main"]
